@@ -48,3 +48,5 @@ Thumbs.db
 *.mov
 *.wmv
 
+.vscode/desktop.ini
+.vscode/launch.json
