@@ -21,7 +21,7 @@ function setup() {
 
     oscillator.amp(0.5);
 
-    //UI objects
+    //UI objects using touchGUI library
     gui = createGui();
 
     toggle_OnOff = createCheckbox("OnOff", 10, 10);
