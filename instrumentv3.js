@@ -5,11 +5,11 @@ let gui;
 let colWidth = 300;
 let rowHeight = 200;
 let buttonHeight = 50;
-let spacingOuter = 15;
+let spacingOuter = 10;
 let spacingInner = 5;
 
 let toggle_OnOff; //power
-let toggle_controlType; //enable playing by keyboard
+let toggle_controlType, toggle_sustain; //enable playing by keyboard, note sustain or separate
 let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 //osc type
 let toggle_record; //record
 let XY_freqAmp; //x-y control
@@ -18,7 +18,7 @@ let XY_freqAmp; //x-y control
 let currentWidth = 100;
 
 //music stuff
-let oscillator, fft, currentOctave, currentNote;
+let oscillator, oscillator2, fft, currentOctave, currentNote, env1;
 
 //recording stuff
 let recordState = 0; //1 if recording
@@ -33,6 +33,7 @@ function setup() {
     //p5 sound objects
     oscillator = new p5.Oscillator('sine');
     oscillator2 = new p5.Oscillator('sine'); //for modulation
+    env1 = new p5.Envelope(0.1, 0.6, 0.3, 0); // attack time, attack level, decay time, decay level
     fft = new p5.FFT(0.8, 256);
     recorder = new p5.SoundRecorder(); //no input specified = records everything happening within the sketch
     soundFile = new p5.SoundFile();
@@ -49,10 +50,11 @@ function setup() {
     XY_freqAmp = createSlider2d("freqAmp", colWidth + spacingOuter * 2, spacingOuter, colWidth, rowHeight, 0, 1, 1, 127);
 
     toggle_controlType = createCheckbox("control", spacingOuter * 2 + colWidth + spacingInner, spacingOuter * 2 + rowHeight + spacingInner, buttonHeight, buttonHeight)
+    toggle_sustain = createCheckbox("sustain", spacingOuter * 2 + colWidth * 2 - spacingInner - buttonHeight, spacingOuter * 2 + rowHeight + spacingInner, buttonHeight, buttonHeight)
 
     toggle_record = createCheckbox("recording", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight * 3 - spacingOuter - spacingInner * 3, buttonHeight, buttonHeight)
-    button_Playback = createButton("Play", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight * 2 - spacingOuter - spacingInner * 2, colWidth / 2 - spacingOuter, buttonHeight)
-    button_Save = createButton("Save", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight - spacingOuter - spacingInner, colWidth / 2 - spacingOuter, buttonHeight)
+    button_Playback = createButton("Play", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight * 2 - spacingOuter - spacingInner * 2, colWidth / 2 - spacingOuter - spacingInner, buttonHeight)
+    button_Save = createButton("Save", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight - spacingOuter - spacingInner, colWidth / 2 - spacingOuter - spacingInner, buttonHeight)
 
     drawRectangles();
 
@@ -67,13 +69,14 @@ function setup() {
     fft.setInput(oscillator);
     noFill();
     stroke('white');
+
+    drawKeyboard(0); //inactive keyboard
 }
 
 function draw() {
     background(100);
     //placeholders
     text('Filtering and FX...?!', spacingOuter + spacingInner, spacingOuter + rowHeight * 1.5)
-    text('Piano keyboard...?!', spacingOuter * 2 + spacingInner + colWidth, spacingOuter + rowHeight * 1.5)
 
     drawRectangles();
     drawLoudspeaker((spacingOuter * 3) + (colWidth * 2.25), (spacingOuter * 2) + (rowHeight * 1.5));
@@ -84,7 +87,7 @@ function draw() {
     textSize(25);
     textAlign(LEFT, CENTER);
     text('Sound', spacingOuter + spacingInner * 2 + 50, spacingOuter + spacingInner + 25);
-    text('Keyboard on/off', spacingOuter * 2 + spacingInner * 2 + colWidth + 50, spacingOuter * 2 + spacingInner + rowHeight + 25);
+    text('Keyboard', spacingOuter * 2 + spacingInner * 2 + colWidth + 50, spacingOuter * 2 + spacingInner + rowHeight + 25);
     textAlign(CENTER, CENTER);
     text('Record', spacingOuter * 3 + spacingInner * 2 + colWidth * 2.75, spacingOuter * 2 + spacingInner + rowHeight + 15);
     textAlign(LEFT, CENTER);
@@ -148,54 +151,89 @@ function draw() {
         oscillator.freq(midiToFreq(XY_freqAmp.valY));
     }
 
+    if (toggle_controlType.val) {
+        drawKeyboard(1); //active keyboard
+    } else {
+        drawKeyboard(0); //inactive keyboard
+    }
+
     //playing via keyboard(1=keyboard on)
     if (keyIsPressed) {
         if (toggle_controlType.val) { //only change frequency when keyboard input is enabled
             //if one of the numbers, change octave
-            if (Number(key) > 0 && Number(key) < 8) {
+            if (Number(key) > 0 && Number(key) < 9) {
                 currentOctave = (Number(key) + 1) * 12;
+                playNote();
+                drawOctaveIndicator(currentOctave);
             } else { //if one of the letters, change note
                 switch (key) {
                     case "a": //C
                         currentNote = 0;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 1, height - spacingOuter - 30);
                         break;
                     case "w": //C#
                         currentNote = 1;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 2, height - spacingOuter - 70);
                         break;
                     case "s": //D
                         currentNote = 2;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 3, height - spacingOuter - 30);
                         break;
                     case "e": //D#
                         currentNote = 3;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 4, height - spacingOuter - 70);
                         break;
                     case "d": //E
                         currentNote = 4;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 5, height - spacingOuter - 30);
                         break;
                     case "f": //F
                         currentNote = 5;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 7, height - spacingOuter - 30);
                         break;
                     case "t": //F#
                         currentNote = 6;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 8, height - spacingOuter - 70);
                         break;
                     case "g": //G
                         currentNote = 7;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 9, height - spacingOuter - 30);
                         break;
                     case "y": //G#
                         currentNote = 8;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 10, height - spacingOuter - 70);
                         break;
                     case "h": //A
                         currentNote = 9;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 11, height - spacingOuter - 30);
                         break;
                     case "u": //A#
                         currentNote = 10;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 12, height - spacingOuter - 70);
                         break;
                     case "j": //B
                         currentNote = 11;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 13, height - spacingOuter - 30);
+                        break;
+                    case "k": //C
+                        currentNote = 12;
+                        playNote();
+                        drawKeyboardIndicator(spacingOuter * 2 + colWidth + spacingInner + 18 * 15, height - spacingOuter - 30);
                         break;
                 }
             }
-            XY_freqAmp.valY = currentNote + currentOctave;
-            oscillator.freq(midiToFreq(XY_freqAmp.valY));
         }
     }
 
@@ -232,6 +270,30 @@ function draw() {
     // draw waveform
     drawWaveform(waveform);
 
+}
+
+function drawKeyboardIndicator(x, y) {
+    fill("red");
+    circle(x, y, 10);
+    noFill();
+}
+
+function drawOctaveIndicator(currentOctave) {
+    let activeOctave = currentOctave / 12 - 1;
+    console.log(activeOctave)
+    stroke("red");
+    noFill();
+
+    circle(spacingOuter * 2 + colWidth + spacingInner + ((activeOctave * 2) - 1) * 18, height - spacingOuter - 50 * 2 - 18, 15);
+
+}
+
+function playNote() {
+    XY_freqAmp.valY = currentNote + currentOctave;
+    oscillator.freq(midiToFreq(XY_freqAmp.valY));
+    if (toggle_sustain.val) {
+        env1.play(oscillator); //play with envelope
+    }
 }
 
 //----- drawing things ----//
@@ -297,6 +359,47 @@ function drawLoudspeaker(x, y) {
     circle(x, y, currentWidth * 0.4)
     noFill();
 
+}
+
+function drawKeyboard(activeFlag) {
+    let keyWidth = 36;
+    let keyHeight = 50;
+    let transparencyValue;
+
+    stroke("grey")
+
+    if (activeFlag) {
+        transparencyValue = 255;
+    } else {
+        transparencyValue = 0.5 * 255;
+    }
+    // white keys
+    fill(255, 255, 255, transparencyValue)
+    for (let i = 0; i < 8; i++) {
+        rect(spacingOuter * 2 + colWidth + spacingInner + (i * keyWidth), height - spacingOuter - keyHeight * 2, keyWidth, keyHeight * 1.75);
+    }
+    //black keys
+    fill(0, 0, 0, transparencyValue)
+    for (let i = 0; i < 2; i++) {
+        rect(spacingOuter * 2 + colWidth + spacingInner + keyWidth / 2 + (i * keyWidth), height - spacingOuter - keyHeight * 2, keyWidth, keyHeight);
+    }
+    for (let i = 3; i < 6; i++) {
+        rect(spacingOuter * 2 + colWidth + spacingInner + keyWidth / 2 + (i * keyWidth), height - spacingOuter - keyHeight * 2, keyWidth, keyHeight);
+    }
+    //octave boxes and numbers
+    for (let i = 0; i < 8; i++) {
+        fill(150, 150, 150, transparencyValue)
+        rect(spacingOuter * 2 + colWidth + spacingInner + (i * keyWidth), height - spacingOuter - keyHeight * 2 - 30, keyWidth, 24);
+        textSize(12);
+        stroke("black");
+        fill(15, 15, 15, transparencyValue);
+        textAlign(CENTER)
+        text(i + 1, spacingOuter * 2 + colWidth + spacingInner + (i * keyWidth) + keyWidth / 2, height - spacingOuter - keyHeight * 2 - 18);
+        stroke("grey");
+        textSize(25);
+        textAlign(LEFT);
+    }
+    noFill();
 }
 
 // to avoid autoplay
