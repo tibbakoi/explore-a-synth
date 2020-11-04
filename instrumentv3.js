@@ -47,7 +47,8 @@ function setup() {
     mgr.addScene(mainScene);
     mgr.addScene(soundScene);
     mgr.addScene(loudspeakerScene);
-    mgr.showScene(mainScene);
+
+    mgr.showScene(soundScene);
 
 }
 
@@ -338,6 +339,10 @@ function mainScene() {
         if (button_soundMore.isPressed) {
             mgr.showScene(soundScene);
         }
+
+        if (button_loudspeakerMore.isPressed) {
+            mgr.showScene(loudspeakerScene);
+        }
     }
 
     //----- musical functions -----//
@@ -490,6 +495,7 @@ function mainScene() {
 function soundScene() {
     // some aspects duplicated from main GUI
     let button_mainGui;
+    let gainKnob;
 
     this.setup = function() {
         //UI objects using touchGUI library
@@ -503,10 +509,10 @@ function soundScene() {
         toggle_Type4 = createCheckbox("Squ", spacingOuter + spacingInner * 4 + buttonHeight * 3, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
 
         //master volume knob 
-        gainKnob = new MakeKnobC("black", 100, width - spacingOuter - spacingInner - 50, spacingOuter + spacingInner + 50, 0, 1, 0, 2, "", [0, 0, 0, 0], 0);
+        gainKnob = new MakeKnobC("black", 60, width - 50, 350, 0, 1, 0, 4, "", [0, 0, 0, 0], 0);
 
         //back to main GUI
-        button_mainGui = createButton(">", width - spacingOuter * 3 - spacingInner * 2, height - spacingOuter - spacingInner - 25, 25, 25);
+        button_mainGui = createButton("x", width - spacingOuter * 3 - spacingInner * 2, spacingOuter * 2, 25, 25);
     }
     this.enter = function() {
         this.setup();
@@ -514,7 +520,8 @@ function soundScene() {
 
     this.draw = function() {
         background("teal")
-            //handle input for master gain knob
+
+        //handle input for master gain knob
         this.mousePressed = function() {
             gainKnob.active();
         }
@@ -522,6 +529,7 @@ function soundScene() {
             gainKnob.inactive();
         }
         drawGui();
+
         gainKnob.update();
 
         fill("white");
@@ -582,7 +590,7 @@ function soundScene() {
         }
 
         //gain knob master gain control- (doesn't work on an event, just changes a value)
-        oscillator.amp(gainKnob.knobValue, 0.01);
+        oscillator.amp(gainKnob.knobValue);
 
         // return to main scene
         if (button_mainGui.isPressed) {
@@ -592,11 +600,28 @@ function soundScene() {
 }
 
 function loudspeakerScene() {
-    this.setup = function() {}
+    let button_mainGui2;
+
+    this.setup = function() {
+
+        guiSound = createGui();
+        // back to main GUI
+        button_mainGui2 = createButton("x", width - spacingOuter * 3 - spacingInner * 2, spacingOuter * 2, 25, 25);
+
+
+    }
     this.enter = function() {
         this.setup();
     }
-    this.draw = function() {}
+    this.draw = function() {
+        background("lightblue")
+        drawGui();
+
+        // return to main scene
+        if (button_mainGui2.isPressed) {
+            mgr.showScene(mainScene);
+        }
+    }
 }
 
 function drawWaveform(waveform, x1, x2, y1, y2) {

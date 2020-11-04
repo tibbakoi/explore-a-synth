@@ -62,8 +62,7 @@ function MakeKnobC(knobColor, diameter, locx, locy, lowNum, hiNum, defaultNum, n
         // move the origin to the pivot point
         translate(this.pos.x, this.pos.y);
 
-        // rotate the grid around the pivot point by a
-        // number of degrees based on drag on button
+        // rotate the grid around the pivot point by a number of degrees based on drag on button
 
         if (dist(this.pos.x, this.pos.y, mouseX, mouseY) < this.radius / 2) {
             this.mouseOver = true;
@@ -71,13 +70,18 @@ function MakeKnobC(knobColor, diameter, locx, locy, lowNum, hiNum, defaultNum, n
             this.mouseOver = false;
         }
         if (mouseIsPressed && this.isClickedOn) {
-            this.rotateMe = this.currentRot + map(mouseY, this.myY, 280, 0, 280);
+            //added by Kat Young to address yPos>280
+            if (this.myY < 280) {
+                this.rotateMe = this.currentRot + map(mouseY, this.myY, 280, 0, 280);
+            } else if (this.myY > 280) {
+                this.rotateMe = this.currentRot + map(mouseY, 280, this.myY, 0, 280);
+            }
             this.rotateMe = int(this.rotateMe);
             if (this.rotateMe < -280) { this.rotateMe = -280; }
             if (this.rotateMe > 0) { this.rotateMe = 0; }
-            rotate(radians(-this.rotateMe)); // change degrees to radians
+            rotate(radians(-this.rotateMe)); // change degrees to radians 
         } else {
-            rotate(radians(-this.rotateMe));
+            rotate(radians(-this.rotateMe)); //needed to draw when not currently clicked on
         }
 
         if (!mouseIsPressed) {
