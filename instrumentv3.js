@@ -18,7 +18,9 @@ let XY_freqAmp; //x-y control
 let currentWidth = 100;
 
 //audio stuff
-let oscillator, oscillator2, fft, currentOctave, currentNote, env1;
+let oscillatorMain, oscillatorCopy, oscillatorLFO; //oscCopy = duplicate of oscMain for the purposes of plotting before/after modulation
+let fftMain, fftCopy, fftLFO;
+let currentOctave, currentNote, envMain;
 let gainKnob;
 let ampAnalyser;
 
@@ -34,10 +36,22 @@ function setup() {
     canvas.parent('instrumentv1'); //specifies which div to put the canvas in
 
     //p5 sound objects - external to any specific scene
-    oscillator = new p5.Oscillator('sine');
-    oscillator2 = new p5.Oscillator('sine'); //for modulation
-    env1 = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
-    fft = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
+    oscillatorMain = new p5.Oscillator('sine');
+    oscillatorCopy = new p5.Oscillator('sine');
+    oscillatorCopy.disconnect(); //disconnect from audio output so can plot signal but have no sound
+    oscillatorLFO = new p5.Oscillator('sine'); //for modulation
+    oscillatorLFO.setType('triangle');
+    oscillatorLFO.disconnect(); //doesn't need to be connected to audio output if used for modulation
+    envMain = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
+
+    fftMain = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
+    fftCopy = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
+    fftLFO = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
+
+    fftMain.setInput(oscillatorMain);
+    fftCopy.setInput(oscillatorCopy);
+    fftLFO.setInput(oscillatorLFO);
+
     ampAnalyser = new p5.Amplitude();
     recorder = new p5.SoundRecorder(); //no input specified = records everything happening within the sketch
     soundFile = new p5.SoundFile();
@@ -48,7 +62,7 @@ function setup() {
     mgr.addScene(soundScene);
     mgr.addScene(loudspeakerScene);
 
-    mgr.showScene(soundScene);
+    mgr.showScene(soundScene); //first scene to load
 
 }
 
@@ -108,8 +122,11 @@ function mainScene() {
         XY_freqAmp.valX = 0; //amplitude at zero
         XY_freqAmp.valY = currentOctave + currentNote;
 
-        oscillator.freq(midiToFreq(XY_freqAmp.valY));
-        oscillator.amp(XY_freqAmp.valX);
+        oscillatorMain.freq(midiToFreq(XY_freqAmp.valY));
+        oscillatorMain.amp(XY_freqAmp.valX);
+
+        oscillatorCopy.freq(midiToFreq(XY_freqAmp.valY)); //copy frequency and amplitude across
+        oscillatorCopy.amp(XY_freqAmp.valX); //NB - is disconnected so not actual output
 
         noFill();
         stroke('white');
@@ -133,7 +150,7 @@ function mainScene() {
         drawLoudspeaker();
         drawRecordLED();
         //get and draw waveform
-        drawWaveform(fft.waveform(), colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + spacingOuter - 1, spacingOuter - 1);
+        drawWaveform(fftMain.waveform(), colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + spacingOuter - 1, spacingOuter - 1);
 
         drawGui();
         gainKnob.update();
@@ -154,11 +171,11 @@ function mainScene() {
 
         // turn synth on/off
         if (toggle_OnOff.val) {
-            if (!oscillator.started) { //to avoid repeatedly starting the oscillator
-                oscillator.start();
+            if (!oscillatorMain.started) { //to avoid repeatedly starting the oscillator
+                oscillatorMain.start();
             }
         } else {
-            oscillator.stop();
+            oscillatorMain.stop();
         }
 
         // toggle between types - mutually exclusive
@@ -166,25 +183,29 @@ function mainScene() {
             toggle_Type2.val = false;
             toggle_Type3.val = false;
             toggle_Type4.val = false;
-            oscillator.setType('sine');
+            oscillatorMain.setType('sine');
+            oscillatorCopy.setType('sine');
         } else if (toggle_Type2.isPressed) {
             toggle_Type1.val = false;
             toggle_Type3.val = false;
             toggle_Type4.val = false;
-            oscillator.setType('sawtooth');
+            oscillatorMain.setType('sawtooth');
+            oscillatorCopy.setType('sawtooth');
         } else if (toggle_Type3.isPressed) {
             toggle_Type1.val = false;
             toggle_Type2.val = false;
             toggle_Type4.val = false;
-            oscillator.setType('triangle');
+            oscillatorMain.setType('triangle');
+            oscillatorCopy.setType('triangle');
         } else if (toggle_Type4.isPressed) {
             toggle_Type1.val = false;
             toggle_Type2.val = false;
             toggle_Type3.val = false;
-            oscillator.setType('square');
+            oscillatorMain.setType('square');
+            oscillatorCopy.setType('square');
         }
 
-        //display osc type label
+        //display osc type label based on which toggle is active
         if (toggle_Type1.val) {
             fill("white");
             noStroke();
@@ -205,17 +226,19 @@ function mainScene() {
 
         //X-Y frequency/amplitude control - only when keyboard isn't enabled - otherwise too many amplitude values at once
         if (XY_freqAmp.isChanged && !toggle_controlType.val) {
-            oscillator.amp(XY_freqAmp.valX * gainKnob.knobValue, 0.01);
-            oscillator.freq(midiToFreq(XY_freqAmp.valY));
+            oscillatorMain.amp(XY_freqAmp.valX * gainKnob.knobValue, 0.01);
+            oscillatorMain.freq(midiToFreq(XY_freqAmp.valY));
+            oscillatorCopy.freq(midiToFreq(XY_freqAmp.valY));
         }
+
         // gain knob master gain control - (doesn't work on an event, just changes a value)
         if (!toggle_controlType.val) {
             //multiply X-Y amplitude when gain knob changes, change osc. amp
-            oscillator.amp(XY_freqAmp.valX * gainKnob.knobValue, 0.01);
+            oscillatorMain.amp(XY_freqAmp.valX * gainKnob.knobValue, 0.01);
         }
         if (toggle_controlType.val) {
             //multiply the envelope when gain knob changes
-            env1.mult(gainKnob.knobValue);
+            envMain.mult(gainKnob.knobValue);
         }
 
         // draw active/inactive keyboard
@@ -348,9 +371,9 @@ function mainScene() {
     //----- musical functions -----//
 
     function playNote() {
-        oscillator.freq(midiToFreq(currentNote + currentOctave));
-        oscillator.amp(0); //need to reset amplitude first otherwise uses value from x-y pad if moved
-        env1.play(oscillator); //play with envelope
+        oscillatorMain.freq(midiToFreq(currentNote + currentOctave));
+        oscillatorMain.amp(0); //need to reset amplitude first otherwise uses value from x-y pad if moved
+        envMain.play(oscillatorMain); //play with envelope
     }
 
     //----- drawing things ----//
@@ -384,8 +407,6 @@ function mainScene() {
         // stroke("purple")
         // rect(spacingOuter - 2, spacingOuter - 2, colWidth + 4, rowHeight * 2 + 4 + spacingOuter, rounding, rounding)
     }
-
-
 
     function drawLoudspeaker() {
         //centre of loudspeaker = x, y
@@ -495,7 +516,7 @@ function mainScene() {
 function soundScene() {
     // some aspects duplicated from main GUI
     let button_mainGui;
-    let gainKnob;
+    let gainKnob, freqKnob_oscCopy, gainKnob_oscLFO, freqKnob_oscLFO;
 
     this.setup = function() {
         //UI objects using touchGUI library
@@ -508,11 +529,21 @@ function soundScene() {
         toggle_Type3 = createCheckbox("Tri", spacingOuter + spacingInner * 3 + buttonHeight * 2, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
         toggle_Type4 = createCheckbox("Squ", spacingOuter + spacingInner * 4 + buttonHeight * 3, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
 
+        toggle_OnOff2 = createCheckbox("OnOff", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + spacingInner, buttonHeight, buttonHeight);
+        // toggle_Type1 = createCheckbox("Sine", spacingOuter + spacingInner, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 1)
+        // toggle_Type2 = createCheckbox("Saw", spacingOuter + spacingInner * 2 + buttonHeight, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
+        // toggle_Type3 = createCheckbox("Tri", spacingOuter + spacingInner * 3 + buttonHeight * 2, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
+        // toggle_Type4 = createCheckbox("Squ", spacingOuter + spacingInner * 4 + buttonHeight * 3, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
+
         //master volume knob 
-        gainKnob = new MakeKnobC("black", 60, width - 50, 350, 0, 1, 0, 4, "", [0, 0, 0, 0], 0);
+        gainKnob = new MakeKnobC("black", 60, spacingOuter + spacingInner + 60, 175, 0, 1, 0, 4, "Vol.", [0, 0, 0, 150], 15);
+        //osc controls
+        freqKnob_oscCopy = new MakeKnobC("black", 60, spacingOuter + spacingInner + 150, 175, 1, 127, 0, 0, "Freq.", [0, 0, 0, 150], 15);
+        gainKnob_oscLFO = new MakeKnobC("black", 60, spacingOuter + spacingInner + colWidth + 60, 175, 0, 1, 0, 4, "Amount", [0, 0, 0, 150], 15);
+        freqKnob_oscLFO = new MakeKnobC("black", 60, spacingOuter + spacingInner + colWidth + 150, 175, 1, 127, 0, 0, "Freq", [0, 0, 0, 150], 15);
 
         //back to main GUI
-        button_mainGui = createButton("x", width - spacingOuter * 3 - spacingInner * 2, spacingOuter * 2, 25, 25);
+        button_mainGui = createButton("x", width - spacingOuter - spacingInner - 25, spacingOuter + spacingInner, 25, 25);
     }
     this.enter = function() {
         this.setup();
@@ -520,31 +551,53 @@ function soundScene() {
 
     this.draw = function() {
         background("teal")
+        drawRectangles();
 
         //handle input for master gain knob
         this.mousePressed = function() {
             gainKnob.active();
+            freqKnob_oscCopy.active();
+            freqKnob_oscLFO.active();
+            gainKnob_oscLFO.active();
         }
         this.mouseReleased = function() {
             gainKnob.inactive();
+            freqKnob_oscCopy.inactive();
+            freqKnob_oscLFO.inactive();
+            gainKnob_oscLFO.inactive();
         }
         drawGui();
 
         gainKnob.update();
+        freqKnob_oscCopy.update();
+        freqKnob_oscLFO.update();
+        gainKnob_oscLFO.update();
 
         fill("white");
         textSize(25);
         textAlign(LEFT, CENTER);
-        text('Sound 1', spacingOuter + spacingInner * 2 + 50, spacingOuter + spacingInner + 25);
+        text('Sound', spacingOuter + spacingInner * 2 + 50, spacingOuter + spacingInner + 25);
         noFill();
 
-        // turn synth on/off
+        // turn synth on/off - both main and copy?
         if (toggle_OnOff.val) {
-            if (!oscillator.started) { //to avoid repeatedly starting the oscillator
-                oscillator.start();
+            if (!oscillatorMain.started) { //to avoid repeatedly starting the oscillator
+                oscillatorMain.start();
+                oscillatorCopy.start();
             }
         } else {
-            oscillator.stop();
+            oscillatorMain.stop();
+            oscillatorCopy.stop();
+        }
+
+        // turn LFO synth on/off, connect to other oscillator
+        if (toggle_OnOff2.val) {
+            if (!oscillatorLFO.started) { //to avoid repeatedly starting the oscillator
+                oscillatorLFO.start();
+                oscillatorMain.amp(oscillatorLFO);
+            }
+        } else {
+            oscillatorLFO.stop();
         }
 
         // toggle between types - mutually exclusive
@@ -552,25 +605,29 @@ function soundScene() {
             toggle_Type2.val = false;
             toggle_Type3.val = false;
             toggle_Type4.val = false;
-            oscillator.setType('sine');
+            oscillatorMain.setType('sine');
+            oscillatorCopy.setType('sine');
         } else if (toggle_Type2.isPressed) {
             toggle_Type1.val = false;
             toggle_Type3.val = false;
             toggle_Type4.val = false;
-            oscillator.setType('sawtooth');
+            oscillatorMain.setType('sawtooth');
+            oscillatorCopy.setType('sawtooth');
         } else if (toggle_Type3.isPressed) {
             toggle_Type1.val = false;
             toggle_Type2.val = false;
             toggle_Type4.val = false;
-            oscillator.setType('triangle');
+            oscillatorMain.setType('triangle');
+            oscillatorCopy.setType('triangle');
         } else if (toggle_Type4.isPressed) {
             toggle_Type1.val = false;
             toggle_Type2.val = false;
             toggle_Type3.val = false;
-            oscillator.setType('square');
+            oscillatorMain.setType('square');
+            oscillatorCopy.setType('square');
         }
 
-        //display osc type label
+        //display osc type label based on which toggle is active
         if (toggle_Type1.val) {
             fill("white");
             noStroke();
@@ -590,12 +647,43 @@ function soundScene() {
         }
 
         //gain knob master gain control- (doesn't work on an event, just changes a value)
-        oscillator.amp(gainKnob.knobValue);
+        oscillatorMain.amp(gainKnob.knobValue);
+        oscillatorCopy.amp(gainKnob.knobValue);
+
+        //freq knob
+        oscillatorCopy.freq(midiToFreq(freqKnob_oscCopy.knobValue))
+        oscillatorMain.freq(midiToFreq(freqKnob_oscCopy.knobValue))
+
+        //LFO amplitude and frequency control
+        oscillatorLFO.amp(gainKnob_oscLFO.knobValue); //needs much larger value for fm than 0-1
+        // console.log("LFO gain: " + gainKnob_oscLFO.knobValue);
+        oscillatorLFO.freq(midiToFreq(freqKnob_oscLFO.knobValue));
+
+        //get and draw waveforms
+        drawWaveform(fftMain.waveform(), colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + spacingOuter - 1, spacingOuter - 1);
+        drawWaveform(fftCopy.waveform(), spacingOuter, spacingOuter + colWidth, rowHeight * 2 + spacingOuter - 1, rowHeight + spacingOuter - 1);
+        drawWaveform(fftLFO.waveform(), spacingOuter * 2 + colWidth, spacingOuter * 2 + colWidth * 2, rowHeight * 2 + spacingOuter - 1, rowHeight + spacingOuter - 1);
 
         // return to main scene
         if (button_mainGui.isPressed) {
             mgr.showScene(mainScene);
         }
+    }
+
+    function drawRectangles() {
+        let rounding = 10;
+        stroke("black")
+        noFill()
+
+        rect(spacingOuter, spacingOuter, colWidth, rowHeight * 2 + spacingOuter, rounding, rounding); //top left
+
+        rect(spacingOuter * 2 + colWidth, spacingOuter, colWidth, rowHeight * 2 + spacingOuter, rounding, rounding); //bottom centre
+
+        rect(colWidth * 2 + spacingOuter * 3, spacingOuter, colWidth, rowHeight, rounding, rounding); //top right
+
+        rect(colWidth * 2 + spacingOuter * 3, rowHeight + spacingOuter * 2, colWidth / 2 - spacingInner, rowHeight, rounding, rounding); //bottom right
+        rect(colWidth * 2.5 + spacingOuter * 3 + spacingInner, rowHeight + spacingOuter * 2, colWidth / 2 - spacingInner, rowHeight, rounding, rounding); //bottom right
+        noStroke();
     }
 }
 
