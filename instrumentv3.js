@@ -1,6 +1,6 @@
 //----- init stuff - decide what needs what scope..?!
 
-//gui variables
+//global gui variables
 let guiMain, guiSound, guiLoudspeaker;
 let colWidth = 300;
 let rowHeight = 200;
@@ -14,14 +14,20 @@ let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 //osc type
 let toggle_record; //record
 let XY_freqAmp; //x-y control
 
-//loudspeaker graphic - needs to be global so that draws when no sound playing
+//re: loudspeaker graphic - needs to be global so that draws when no sound playing
 let currentWidth = 100;
+
+//state stuff
+let isOn = 0;
+let LFOisOn = 0;
 
 //audio stuff
 let oscillatorMain, oscillatorCopy, oscillatorLFO; //oscCopy = duplicate of oscMain for the purposes of plotting before/after modulation
 let fftMain, fftCopy, fftLFO;
-let currentOctave, currentNote, envMain;
-let gainKnob;
+let currentOctave = 48; //3rd octave
+let currentNote = 0; //C
+let currentAmp = 0;
+let envMain;
 let ampAnalyser;
 
 //recording stuff
@@ -38,11 +44,15 @@ function setup() {
     //p5 sound objects - external to any specific scene
     oscillatorMain = new p5.Oscillator('sine');
     oscillatorCopy = new p5.Oscillator('sine');
-    oscillatorCopy.disconnect(); //disconnect from audio output so can plot signal but have no sound
     oscillatorLFO = new p5.Oscillator('sine'); //for modulation
-    oscillatorLFO.setType('triangle');
+    oscillatorCopy.disconnect(); //disconnect from audio output so can plot signal but have no sound
     oscillatorLFO.disconnect(); //doesn't need to be connected to audio output if used for modulation
     envMain = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
+
+    //oscillator setup
+    oscillatorMain.amp(0);
+    oscillatorCopy.amp(0);
+    oscillatorLFO.amp(0);
 
     fftMain = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
     fftCopy = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
@@ -62,7 +72,7 @@ function setup() {
     mgr.addScene(soundScene);
     mgr.addScene(loudspeakerScene);
 
-    mgr.showScene(soundScene); //first scene to load
+    mgr.showScene(mainScene); //first scene to load
 
 }
 
@@ -85,6 +95,8 @@ function mouseReleased() {
 function mainScene() {
     let button_loudspeakerMore;
     let button_soundMore;
+    let gainKnob;
+    let waveform;
 
     this.setup = function() {
 
@@ -99,7 +111,7 @@ function mainScene() {
         toggle_Type4 = createCheckbox("Squ", spacingOuter + spacingInner * 4 + buttonHeight * 3, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
 
         //master volume knob 
-        gainKnob = new MakeKnobC("black", 60, spacingOuter + colWidth - spacingInner - 30, spacingOuter + spacingInner + 30, 0, 1, 0, 2, "", [0, 0, 0, 0], 0);
+        gainKnob = new MakeKnobC("black", 60, spacingOuter + colWidth - spacingInner - 30, spacingOuter + spacingInner + 30, 0, 1, oscillatorMain.amp().value, 2, "", [0, 0, 0, 0], 0);
 
         //X-Y pad
         XY_freqAmp = createSlider2d("freqAmp", colWidth + spacingOuter * 2, spacingOuter, colWidth, rowHeight, 0, 1, 1, 127);
@@ -113,24 +125,22 @@ function mainScene() {
         button_Save = createButton("Save", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight - spacingOuter - spacingInner, colWidth / 2 - spacingOuter - spacingInner, buttonHeight)
 
         // scene manager switch buttons
-        button_loudspeakerMore = createButton("?", spacingOuter + colWidth * 2.5 - spacingInner * 3, height - spacingOuter - spacingInner - 25, 25, 25);
-        button_soundMore = createButton("?", spacingOuter + colWidth - spacingInner - 25, spacingOuter + rowHeight - spacingInner - 25, 25, 25);
+        button_loudspeakerMore = createButton("More", spacingOuter + colWidth * 2.5 - spacingInner * 3, height - spacingOuter - spacingInner - 25, 25, 25);
+        button_soundMore = createButton("More", spacingOuter + colWidth - spacingInner - 25, spacingOuter + rowHeight - spacingInner - 25, 25, 25);
 
-        //starting parameters
-        currentOctave = 48; //default to 3rd octave
-        currentNote = 0; //middle C
-        XY_freqAmp.valX = 0; //amplitude at zero
-        XY_freqAmp.valY = currentOctave + currentNote;
-
+        //starting parameters - looks recursive but means everything has the correct values on load
+        XY_freqAmp.valX = 1; //amplitude at 1
+        XY_freqAmp.valY = freqToMidi(oscillatorMain.freq().value);
         oscillatorMain.freq(midiToFreq(XY_freqAmp.valY));
-        oscillatorMain.amp(XY_freqAmp.valX);
-
+        oscillatorMain.amp(XY_freqAmp.valX * gainKnob.knobValue, 0.01);
         oscillatorCopy.freq(midiToFreq(XY_freqAmp.valY)); //copy frequency and amplitude across
-        oscillatorCopy.amp(XY_freqAmp.valX); //NB - is disconnected so not actual output
+        oscillatorCopy.amp(XY_freqAmp.valX * gainKnob.knobValue, 0.01); //NB - is disconnected so not actual output
 
         noFill();
         stroke('white');
 
+        //set toggle values based on state of oscillators
+        setToggleValues();
     }
 
     this.enter = function() { //called each time this scene is switched to
@@ -138,19 +148,23 @@ function mainScene() {
     }
     this.draw = function() {
 
-        //handle input for master gain knob
+        //handle mouse input for master gain knob
         this.mousePressed = function() {
-            gainKnob.active();
+            gainKnob.active(); //function to activation knob if mousePressed and mouseOver (within fn)
         }
         this.mouseReleased = function() {
             gainKnob.inactive();
         }
 
+        //if mouse is NOT pressed and within region where waveform is drawn, plot live version
+        if (!(mouseIsPressed && mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > spacingOuter && mouseY < (spacingOuter * 2 + rowHeight))) {
+            waveform = fftMain.waveform();
+        }
+        drawWaveform(waveform, colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + spacingOuter - 1, spacingOuter - 1);
+
         drawRectangles();
         drawLoudspeaker();
         drawRecordLED();
-        //get and draw waveform
-        drawWaveform(fftMain.waveform(), colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + spacingOuter - 1, spacingOuter - 1);
 
         drawGui();
         gainKnob.update();
@@ -173,9 +187,13 @@ function mainScene() {
         if (toggle_OnOff.val) {
             if (!oscillatorMain.started) { //to avoid repeatedly starting the oscillator
                 oscillatorMain.start();
+                oscillatorCopy.start();
+                isOn = 1; //for transferring between scenes
             }
         } else {
             oscillatorMain.stop();
+            oscillatorCopy.stop();
+            isOn = 0;
         }
 
         // toggle between types - mutually exclusive
@@ -227,18 +245,25 @@ function mainScene() {
         //X-Y frequency/amplitude control - only when keyboard isn't enabled - otherwise too many amplitude values at once
         if (XY_freqAmp.isChanged && !toggle_controlType.val) {
             oscillatorMain.amp(XY_freqAmp.valX * gainKnob.knobValue, 0.01);
+            oscillatorCopy.amp(XY_freqAmp.valX * gainKnob.knobValue, 0.01);
             oscillatorMain.freq(midiToFreq(XY_freqAmp.valY));
             oscillatorCopy.freq(midiToFreq(XY_freqAmp.valY));
         }
 
         // gain knob master gain control - (doesn't work on an event, just changes a value)
+        //if in x-y mode, multiply X-Y amplitude when gain knob changes then change osc. amp
         if (!toggle_controlType.val) {
-            //multiply X-Y amplitude when gain knob changes, change osc. amp
             oscillatorMain.amp(XY_freqAmp.valX * gainKnob.knobValue, 0.01);
+            oscillatorCopy.amp(XY_freqAmp.valX * gainKnob.knobValue, 0.01);
         }
+        //if in keyboard board, multiply the envelope when gain knob changes
         if (toggle_controlType.val) {
-            //multiply the envelope when gain knob changes
             envMain.mult(gainKnob.knobValue);
+        }
+        //if turned keyboard mode on, set osc. amp to zero before start
+        if (toggle_controlType.isPressed && toggle_controlType.val) {
+            // oscillatorMain.amp(0, 0.01);
+            // oscillatorCopy.amp(0, 0.01);
         }
 
         // draw active/inactive keyboard
@@ -511,12 +536,16 @@ function mainScene() {
         circle(spacingOuter * 2 + colWidth + spacingInner + ((activeOctave * 2) - 1) * 18, height - spacingOuter - 50 * 2 - 18, 15);
 
     }
+
+
+
 }
 
 function soundScene() {
     // some aspects duplicated from main GUI
     let button_mainGui;
     let gainKnob, freqKnob_oscCopy, gainKnob_oscLFO, freqKnob_oscLFO;
+    let waveformMain, waveformCopy, waveformLFO;
 
     this.setup = function() {
         //UI objects using touchGUI library
@@ -530,20 +559,24 @@ function soundScene() {
         toggle_Type4 = createCheckbox("Squ", spacingOuter + spacingInner * 4 + buttonHeight * 3, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
 
         toggle_OnOff2 = createCheckbox("OnOff", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + spacingInner, buttonHeight, buttonHeight);
-        // toggle_Type1 = createCheckbox("Sine", spacingOuter + spacingInner, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 1)
-        // toggle_Type2 = createCheckbox("Saw", spacingOuter + spacingInner * 2 + buttonHeight, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
-        // toggle_Type3 = createCheckbox("Tri", spacingOuter + spacingInner * 3 + buttonHeight * 2, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
-        // toggle_Type4 = createCheckbox("Squ", spacingOuter + spacingInner * 4 + buttonHeight * 3, spacingOuter + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
 
         //master volume knob 
-        gainKnob = new MakeKnobC("black", 60, spacingOuter + spacingInner + 60, 175, 0, 1, 0, 4, "Vol.", [0, 0, 0, 150], 15);
+        gainKnob = new MakeKnobC("black", 60, spacingOuter + spacingInner + 60, 175, 0, 1, oscillatorMain.amp().value, 4, "Vol.", [0, 0, 0, 150], 15);
         //osc controls
-        freqKnob_oscCopy = new MakeKnobC("black", 60, spacingOuter + spacingInner + 150, 175, 1, 127, 0, 0, "Freq.", [0, 0, 0, 150], 15);
-        gainKnob_oscLFO = new MakeKnobC("black", 60, spacingOuter + spacingInner + colWidth + 60, 175, 0, 1, 0, 4, "Amount", [0, 0, 0, 150], 15);
-        freqKnob_oscLFO = new MakeKnobC("black", 60, spacingOuter + spacingInner + colWidth + 150, 175, 1, 127, 0, 0, "Freq", [0, 0, 0, 150], 15);
+        freqKnob_oscCopy = new MakeKnobC("black", 60, spacingOuter + spacingInner + 150, 175, 1, 127, freqToMidi(oscillatorMain.freq().value), 0, "Freq.", [0, 0, 0, 150], 15);
+        gainKnob_oscLFO = new MakeKnobC("black", 60, spacingOuter + spacingInner + colWidth + 60, 175, 0, 1, oscillatorMain.amp().value, 4, "Amount", [0, 0, 0, 150], 15);
+        freqKnob_oscLFO = new MakeKnobC("black", 60, spacingOuter + spacingInner + colWidth + 150, 175, 1, 127, freqToMidi(oscillatorLFO.freq().value), 0, "Freq", [0, 0, 0, 150], 15);
 
         //back to main GUI
         button_mainGui = createButton("x", width - spacingOuter - spacingInner - 25, spacingOuter + spacingInner, 25, 25);
+
+        //set toggle values based on state of oscillators
+        setToggleValues();
+
+        if (LFOisOn) {
+            toggle_OnOff2.val = true;
+        }
+
     }
     this.enter = function() {
         this.setup();
@@ -579,15 +612,17 @@ function soundScene() {
         text('Sound', spacingOuter + spacingInner * 2 + 50, spacingOuter + spacingInner + 25);
         noFill();
 
-        // turn synth on/off - both main and copy?
+        // turn synth on/off - both main and copy
         if (toggle_OnOff.val) {
             if (!oscillatorMain.started) { //to avoid repeatedly starting the oscillator
                 oscillatorMain.start();
                 oscillatorCopy.start();
+                isOn = 1;
             }
         } else {
             oscillatorMain.stop();
             oscillatorCopy.stop();
+            isOn = 0;
         }
 
         // turn LFO synth on/off, connect to other oscillator
@@ -595,12 +630,14 @@ function soundScene() {
             if (!oscillatorLFO.started) { //to avoid repeatedly starting the oscillator
                 oscillatorLFO.start();
                 oscillatorMain.amp(oscillatorLFO);
+                LFOisOn = 1;
             }
         } else {
             oscillatorLFO.stop();
+            LFOisOn = 0;
         }
 
-        // toggle between types - mutually exclusive
+        // set type and toggle between types - mutually exclusive
         if (toggle_Type1.isPressed) {
             toggle_Type2.val = false;
             toggle_Type3.val = false;
@@ -647,22 +684,35 @@ function soundScene() {
         }
 
         //gain knob master gain control- (doesn't work on an event, just changes a value)
-        oscillatorMain.amp(gainKnob.knobValue);
-        oscillatorCopy.amp(gainKnob.knobValue);
+        oscillatorMain.amp(gainKnob.knobValue, 0.01);
+        oscillatorCopy.amp(gainKnob.knobValue, 0.01);
 
         //freq knob
         oscillatorCopy.freq(midiToFreq(freqKnob_oscCopy.knobValue))
         oscillatorMain.freq(midiToFreq(freqKnob_oscCopy.knobValue))
 
         //LFO amplitude and frequency control
-        oscillatorLFO.amp(gainKnob_oscLFO.knobValue); //needs much larger value for fm than 0-1
-        // console.log("LFO gain: " + gainKnob_oscLFO.knobValue);
+        oscillatorLFO.amp(gainKnob_oscLFO.knobValue, 0.01); //needs much larger value for fm than 0-1
         oscillatorLFO.freq(midiToFreq(freqKnob_oscLFO.knobValue));
 
-        //get and draw waveforms
-        drawWaveform(fftMain.waveform(), colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + spacingOuter - 1, spacingOuter - 1);
-        drawWaveform(fftCopy.waveform(), spacingOuter, spacingOuter + colWidth, rowHeight * 2 + spacingOuter - 1, rowHeight + spacingOuter - 1);
-        drawWaveform(fftLFO.waveform(), spacingOuter * 2 + colWidth, spacingOuter * 2 + colWidth * 2, rowHeight * 2 + spacingOuter - 1, rowHeight + spacingOuter - 1);
+        //----- get and draw waveforms -----//
+        //if mouse is NOT pressed and within region where waveform is drawn, plot live version
+        if (!(mouseIsPressed && mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > spacingOuter && mouseY < (spacingOuter * 2 + rowHeight))) {
+            waveformMain = fftMain.waveform();
+        }
+        drawWaveform(waveformMain, colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + spacingOuter - 1, spacingOuter - 1);
+
+        //if mouse is NOT pressed and within region where waveform is drawn, plot live version
+        if (!(mouseIsPressed && mouseX > spacingOuter && mouseX < (spacingOuter + colWidth) && mouseY > (rowHeight + spacingOuter - 1) && mouseY < (rowHeight * 2 + spacingOuter - 1))) {
+            waveformCopy = fftCopy.waveform();
+        }
+        drawWaveform(waveformCopy, spacingOuter, spacingOuter + colWidth, rowHeight * 2 + spacingOuter - 1, rowHeight + spacingOuter - 1);
+
+        //if mouse is NOT pressed and within region where waveform is drawn, plot live version
+        if (!(mouseIsPressed && mouseX > spacingOuter * 2 + colWidth && mouseX < (spacingOuter * 2 + colWidth * 2) && mouseY > (rowHeight + spacingOuter - 1) && mouseY < (rowHeight * 2 + spacingOuter - 1))) {
+            waveformLFO = fftLFO.waveform();
+        }
+        drawWaveform(waveformLFO, spacingOuter * 2 + colWidth, spacingOuter * 2 + colWidth * 2, rowHeight * 2 + spacingOuter - 1, rowHeight + spacingOuter - 1);
 
         // return to main scene
         if (button_mainGui.isPressed) {
@@ -684,6 +734,41 @@ function soundScene() {
         rect(colWidth * 2 + spacingOuter * 3, rowHeight + spacingOuter * 2, colWidth / 2 - spacingInner, rowHeight, rounding, rounding); //bottom right
         rect(colWidth * 2.5 + spacingOuter * 3 + spacingInner, rowHeight + spacingOuter * 2, colWidth / 2 - spacingInner, rowHeight, rounding, rounding); //bottom right
         noStroke();
+    }
+}
+
+function setToggleValues() {
+    if (isOn) {
+        toggle_OnOff.val = 1;
+    }
+
+    currentType = oscillatorMain.oscillator.type;
+    switch (currentType) {
+        case 'sine':
+            toggle_Type1.val = true;
+            toggle_Type2.val = false;
+            toggle_Type3.val = false;
+            toggle_Type4.val = false;
+            break;
+        case 'sawtooth':
+            toggle_Type1.val = false;
+            toggle_Type2.val = true;
+            toggle_Type3.val = false;
+            toggle_Type4.val = false;
+            break;
+        case 'triangle':
+            toggle_Type1.val = false;
+            toggle_Type2.val = false;
+            toggle_Type3.val = true;
+            toggle_Type4.val = false;
+            break;
+        case 'square':
+            toggle_Type1.val = false;
+            toggle_Type2.val = false;
+            toggle_Type3.val = false;
+            toggle_Type4.val = true;
+            break;
+
     }
 }
 
