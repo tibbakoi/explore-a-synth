@@ -2,8 +2,8 @@
 function mainScene() {
     let button_loudspeakerMore;
     let button_soundMore;
-    let gainKnob;
     let waveform = 0;
+    let slider_gain;
 
     this.setup = function() {
 
@@ -29,15 +29,16 @@ function mainScene() {
         button_Save = createButton("Save", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight - spacingOuter - spacingInner, colWidth / 2 - spacingOuter - spacingInner, buttonHeight);
 
         // scene manager switch buttons
-        button_loudspeakerMore = createButton("More", spacingOuter + colWidth * 2.5 - spacingInner * 3, height - spacingOuter - spacingInner - 25, 25, 25);
-        button_soundMore = createButton("More", spacingOuter + colWidth - spacingInner - 25, spacingOuter + +textBarHeight + rowHeight - spacingInner - 25, 25, 25);
+        button_loudspeakerMore = createButton("More", spacingOuter * 3 + colWidth * 2.5 - spacingInner * 2 - 55, height - spacingOuter - spacingInner - 26, 55, 26);
+        button_soundMore = createButton("More", spacingOuter + colWidth - spacingInner - 55, spacingOuter * 2 + textBarHeight + rowHeight - spacingInner - 26, 55, 26);
 
-        //master volume knob - set to currentAmpMain
-        gainKnob = new MakeKnobC("black", 60, spacingOuter + colWidth - spacingInner - 30, spacingOuter * 2 + spacingInner + 30 + textBarHeight, 0, 1, currentAmpMain, 2, "", [0, 0, 0, 0], 0);
+        //master volume slider - set to currentAmpMain
+        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2, 30, 0, 1);
 
         //starting parameters - looks recursive but means everything has the correct values on load
         XY_freqAmp.valX = 1; //amplitude at 1
         XY_freqAmp.valY = freqToMidi(currentFreqMain);
+        slider_gain.val = currentAmpMain;
 
         oscillatorMain.freq(currentFreqMain);
         oscillatorMain.amp(currentAmpMain, 0.01);
@@ -62,14 +63,6 @@ function mainScene() {
 
     this.draw = function() {
 
-        //handle mouse input for master gain knob
-        this.mousePressed = function() {
-            gainKnob.active(); //function to activation knob if mousePressed and mouseOver (within fn)
-        };
-        this.mouseReleased = function() {
-            gainKnob.inactive();
-        };
-
         //if mouse is NOT pressed and within region where waveform is drawn, plot live version
         if (!(mouseIsPressed && mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > (spacingOuter * 2 + textBarHeight) && mouseY < (spacingOuter * 2 + textBarHeight + rowHeight))) {
             waveform = fftMain.waveform();
@@ -79,9 +72,7 @@ function mainScene() {
         drawRectangles();
         drawLoudspeaker();
         drawRecordLED();
-
         drawGui();
-        gainKnob.update();
 
         //various text bits
         fill("white");
@@ -162,7 +153,7 @@ function mainScene() {
         //X-Y frequency/amplitude control - only when keyboard isn't enabled - otherwise too many amplitude values at once
         if (XY_freqAmp.isChanged && !toggle_controlType.val) {
             //store values
-            currentAmpMain = XY_freqAmp.valX * gainKnob.knobValue;
+            currentAmpMain = XY_freqAmp.valX * slider_gain.val;
             currentFreqMain = midiToFreq(XY_freqAmp.valY);
             //set osc variables
             oscillatorMain.amp(currentAmpMain, 0.01);
@@ -171,18 +162,16 @@ function mainScene() {
             oscillatorCopy.freq(currentFreqMain);
         }
 
-        // gain knob master gain control - (doesn't work on an event, just changes a value)
-        //if in x-y mode, multiply X-Y amplitude when gain knob changes then change osc. amp
-        if (!toggle_controlType.val) {
-            //store value
-            currentAmpMain = XY_freqAmp.valX * gainKnob.knobValue;
-            //set osc variables
+        //slider amplitude control
+        if (slider_gain.isChanged) {
+            currentAmpMain = XY_freqAmp.valX * slider_gain.val;
             oscillatorMain.amp(currentAmpMain, 0.01);
             oscillatorCopy.amp(currentAmpMain, 0.01);
         }
+
         //if in keyboard board, multiply the envelope when gain knob changes
         if (toggle_controlType.val) {
-            envMain.mult(gainKnob.knobValue);
+            envMain.mult(slider_gain.val);
         }
 
         // draw active/inactive keyboard
@@ -316,7 +305,6 @@ function mainScene() {
     function playNote() {
         currentFreqMain = midiToFreq(currentNote + currentOctave);
         oscillatorMain.freq(currentFreqMain);
-        oscillatorMain.amp(0); //need to reset amplitude first otherwise uses value from x-y pad if moved
         envMain.play(oscillatorMain); //play with envelope
         envMain.play(oscillatorLFO); //play with envelope
 
