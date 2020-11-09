@@ -10,6 +10,10 @@ function mainScene() {
     let loudspeakerWidth = 100;
     let loudspeakerX = (spacingOuter * 3) + (colWidth * 2.25);;
     let loudspeakerY = (spacingOuter * 3) + (rowHeight * 1.5) + textBarHeight;
+    let ampAnalyser;
+    let recorder, soundFile;
+    let button_Playback, button_Save;
+    let envMain;
 
     this.setup = function() {
 
@@ -43,6 +47,11 @@ function mainScene() {
         button_helpMode_input = createButton("?", spacingOuter * 2 + colWidth * 2 - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
         button_helpMode_output = createButton("?", spacingOuter * 3 + colWidth * 3 - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
 
+        //audio things
+        ampAnalyser = new p5.Amplitude();
+        recorder = new p5.SoundRecorder(); //no input specified = records everything happening within the sketch
+        soundFile = new p5.SoundFile();
+        envMain = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
 
         //master volume slider - set to currentAmpMain
         slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
@@ -221,7 +230,7 @@ function mainScene() {
                 rect(270, 150, 150, 90, 10, 10);
                 stroke("black")
                 fill("white")
-                text("Learn more here", 270, 150, 150, 150)
+                text("Explore more here", 270, 150, 150, 150)
                 noFill();
                 noStroke();
                 rectMode(CORNER)
@@ -280,7 +289,7 @@ function mainScene() {
                 rect(spacingOuter * 3 + spacingInner + colWidth * 2.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.25, colWidth - spacingInner * 2, rowHeight / 2 - spacingInner * 2, 10, 10);
                 stroke("black")
                 fill("white")
-                text("The waveform is plotted here. Click on it to pause it.", spacingOuter * 3 + spacingInner + colWidth * 2.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.25, colWidth - spacingInner * 2, rowHeight - spacingInner * 2)
+                text("The waveform is plotted here. Click to pause it.", spacingOuter * 3 + spacingInner + colWidth * 2.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.25, colWidth - spacingInner * 2, rowHeight - spacingInner * 2)
                 noFill();
                 noStroke();
                 rectMode(CORNER)

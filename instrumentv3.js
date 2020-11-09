@@ -29,11 +29,7 @@ let isLFOon = 0;
 let currentType = 'sine';
 
 let envMain;
-let ampAnalyser;
 
-//recording stuff
-let recorder, soundFile;
-let button_Playback, button_Save;
 
 //scene manager
 let mgr;
@@ -62,10 +58,6 @@ function setup() {
     fftMain.setInput(oscillatorMain);
     fftCopy.setInput(oscillatorCopy);
     fftLFO.setInput(oscillatorLFO);
-
-    ampAnalyser = new p5.Amplitude();
-    recorder = new p5.SoundRecorder(); //no input specified = records everything happening within the sketch
-    soundFile = new p5.SoundFile();
 
     //set up scene manager
     mgr = new SceneManager();
