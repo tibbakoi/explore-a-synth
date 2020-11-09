@@ -37,6 +37,7 @@ function mainScene() {
 
         //help mode buttons
         button_helpMode_sound = createButton("?", spacingOuter + colWidth - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
+        button_helpMode_input = createButton("?", spacingOuter * 2 + colWidth * 2 - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
 
         //master volume slider - set to currentAmpMain
         slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
@@ -69,7 +70,8 @@ function mainScene() {
 
     this.draw = function() {
 
-        // figure out whether in help mode or not
+        //---- figure out whether in help mode or not ----//
+        //sound section
         if (button_helpMode_sound.isPressed && helpMode_sound == 0) { //if button pressed to turn on 
             helpMode_sound = 1;
             button_helpMode_sound.setStyle({
@@ -78,6 +80,18 @@ function mainScene() {
         } else if (button_helpMode_sound.isPressed && helpMode_sound == 1) { //if button pressed to turn off
             helpMode_sound = 0;
             button_helpMode_sound.setStyle({
+                fillBg: color(130),
+            });
+        }
+        //input section
+        if (button_helpMode_input.isPressed && helpMode_input == 0) { //if button pressed to turn on 
+            helpMode_input = 1;
+            button_helpMode_input.setStyle({
+                fillBg: color("lightgray"),
+            });
+        } else if (button_helpMode_input.isPressed && helpMode_input == 1) { //if button pressed to turn off
+            helpMode_input = 0;
+            button_helpMode_input.setStyle({
                 fillBg: color(130),
             });
         }
@@ -135,6 +149,13 @@ function mainScene() {
             text('Sqr', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
         }
 
+        // draw active/inactive keyboard
+        if (toggle_controlType.val) {
+            drawKeyboard(1); //active keyboard
+        } else {
+            drawKeyboard(0); //inactive keyboard
+        }
+
         //----- pop up hover over boxes if help mode on - draw on top of everything else
         if (helpMode_sound) {
             if (toggle_OnOff._hover) {
@@ -187,6 +208,51 @@ function mainScene() {
                 noFill();
                 noStroke();
                 rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (mouseY > spacingOuter * 3 + textBarHeight + rowHeight) { // placeholder for filtering/FX box
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(spacingOuter + colWidth / 2, spacingOuter + textBarHeight + rowHeight * 1.5, 150, 90, 10, 10);
+                stroke("black")
+                fill("white")
+                text("Placeholder for things to come....", spacingOuter + colWidth / 2, spacingOuter + textBarHeight + rowHeight * 1.5, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+        }
+        if (helpMode_input) {
+            if (XY_freqAmp._hover) {
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2, 10, 10);
+                stroke("black")
+                fill("white")
+                text("Change freqency and volume at the same time here. Left-right is volume (up to the value on the main volume slider) and up-down is frequency", spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (toggle_controlType._hover) {
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2, 10, 10);
+                stroke("black")
+                fill("white")
+                text("Turn this on to enable playing the sound with the letters on your computer keyboard. Numbers change the octave.", spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+
+                drawKeyboardHelp();
+
+
                 textAlign(LEFT, CENTER)
             }
         }
@@ -261,12 +327,7 @@ function mainScene() {
             envMain.mult(slider_gain.val);
         }
 
-        // draw active/inactive keyboard
-        if (toggle_controlType.val) {
-            drawKeyboard(1); //active keyboard
-        } else {
-            drawKeyboard(0); //inactive keyboard
-        }
+
 
         //playing via keyboard(1=keyboard on)
         if (keyIsPressed) {
@@ -527,6 +588,39 @@ function mainScene() {
         fill("red");
         circle(x, y, 10);
         noFill();
+    }
+
+    function drawKeyboardHelp() {
+        let whiteNoteOffsetVertical = 30;
+        let blackNoteOffsetVertical = 70;
+        let horizIncrement, verticalOffset;
+        letters = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j", "k"];
+
+        for (let j = 0; j < 13; j++) {
+
+            //calculate multiple of horiz increment for each note
+            if (j < 5) {
+                horizIncrement = 1;
+            } else if (j > 4 && j < 12) {
+                horizIncrement = 2;
+            } else {
+                horizIncrement = 3;
+            }
+
+            //calculate y offset for each note
+            if (j == 1 || j == 3 || j == 6 || j == 8 || j == 10) {
+                verticalOffset = blackNoteOffsetVertical;
+            } else {
+                verticalOffset = whiteNoteOffsetVertical;
+            }
+
+            x = spacingOuter * 2 + colWidth + spacingInner + 18 * (j + horizIncrement); //18 = width of key/2
+            y = height - spacingOuter - verticalOffset;
+
+            fill("red");
+            text(letters[j], x, y, 10);
+            noFill();
+        }
     }
 
     function drawOctaveIndicator(currentOctave) {
