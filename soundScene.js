@@ -5,7 +5,6 @@ function soundScene() {
     let waveformMain = 0;
     let waveformCopy = 0;
     let waveformLFO = 0;
-    let text_freqValue, text_freqValue2;
 
     this.setup = function() {
         //UI objects using touchGUI library
@@ -47,7 +46,7 @@ function soundScene() {
     };
 
     this.draw = function() {
-        background("teal");
+        background(84, 106, 118);
         drawRectangles();
 
         drawGui();
@@ -57,6 +56,15 @@ function soundScene() {
         textSize(25);
         textAlign(LEFT, CENTER);
         text('Sound', spacingOuter + spacingInner * 2 + 50, spacingOuter * 2 + textBarHeight + spacingInner + 25);
+
+        textAlign(CENTER, CENTER)
+        text("This is the first oscillator.", spacingOuter, spacingOuter + spacingInner, colWidth, textBarHeight);
+        text("This is the second oscillator.", spacingOuter * 2 + colWidth, spacingOuter + spacingInner, colWidth, textBarHeight);
+        text("We can use them in combination to make more interesting sounds.", spacingOuter * 3 + spacingInner + colWidth * 2, spacingOuter + spacingInner, colWidth - spacingInner, textBarHeight);
+        textSize(20)
+        text("We can use them in combination to make more interesting sounds.", spacingOuter * 3 + spacingInner + colWidth * 2, spacingOuter * 3 + colWidth + spacingInner, colWidth - spacingInner, textBarHeight);
+        textAlign(LEFT, CENTER);
+        noFill();
 
         textSize(18)
         if (slider_freqCopy.val > freqToMidi(1000)) {
@@ -199,7 +207,8 @@ function soundScene() {
 
     function drawRectangles() {
         let rounding = 10;
-        stroke("black");
+        stroke(255, 193, 84);
+        strokeWeight(2);
         noFill();
 
         rect(spacingOuter, spacingOuter, colWidth, textBarHeight, rounding, rounding)

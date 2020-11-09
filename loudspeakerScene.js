@@ -13,12 +13,12 @@ function loudspeakerScene() {
         this.setup();
     };
     this.draw = function() {
-        background("darkblue");
+        background(84, 106, 118);
         drawGui();
 
         textAlign(CENTER, CENTER)
-        fill("white")
-        stroke("black")
+        stroke(88, 44, 77)
+        fill(88, 44, 77)
         text("There will be information about how sound/vibration/loudspeakers work here", width / 2, height / 2)
 
         // return to main scene

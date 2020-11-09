@@ -28,9 +28,6 @@ let isOn = 0;
 let isLFOon = 0;
 let currentType = 'sine';
 
-let envMain;
-
-
 //scene manager
 let mgr;
 
@@ -44,7 +41,6 @@ function setup() {
     oscillatorLFO = new p5.Oscillator('sine'); //for modulation
     oscillatorCopy.disconnect(); //disconnect from audio output so can plot signal but have no sound
     oscillatorLFO.disconnect(); //doesn't need to be connected to audio output if used for modulation
-    envMain = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
 
     //oscillator setup
     oscillatorMain.amp(currentAmpMain);
@@ -70,7 +66,7 @@ function setup() {
 }
 
 function draw() {
-    background(100);
+    background(84, 106, 118);
     mgr.draw();
 }
 

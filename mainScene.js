@@ -185,12 +185,12 @@ function mainScene() {
         //----- pop up hover over boxes if help mode on - draw on top of everything else
         if (helpMode_sound) {
             if (toggle_OnOff._hover) {
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(270, 150, 150, 80, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Turn on and off here", 270, 150, 150, 150)
                 noFill();
                 noStroke();
@@ -198,12 +198,12 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
             if (toggle_Type1._hover || toggle_Type2._hover || toggle_Type3._hover || toggle_Type4._hover) {
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(270, 150, 150, 90, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Change the shape of the wave here", 270, 150, 150, 150)
                 noFill();
                 noStroke();
@@ -211,12 +211,12 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
             if (slider_gain._hover) {
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(270, 150, 150, 90, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Change the main volume here", 270, 150, 150, 150)
                 noFill();
                 noStroke();
@@ -224,12 +224,12 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
             if (button_soundMore._hover) {
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(270, 150, 150, 90, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Explore more here", 270, 150, 150, 150)
                 noFill();
                 noStroke();
@@ -237,12 +237,12 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
             if (mouseY > spacingOuter * 3 + textBarHeight + rowHeight && mouseX < spacingOuter + colWidth) { // placeholder for filtering/FX box
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(spacingOuter + colWidth / 2, spacingOuter + textBarHeight + rowHeight * 1.5, 150, 90, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Placeholder for things to come....", spacingOuter + colWidth / 2, spacingOuter + textBarHeight + rowHeight * 1.5, 150, 150)
                 noFill();
                 noStroke();
@@ -252,12 +252,12 @@ function mainScene() {
         }
         if (helpMode_input) {
             if (XY_freqAmp._hover) {
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Change freqency and volume at the same time here. Left-right is volume (up to the value on the main volume slider) and up-down is frequency", spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2)
                 noFill();
                 noStroke();
@@ -265,12 +265,12 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
             if (toggle_controlType._hover) {
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Turn this on to enable playing the sound with the letters on your computer keyboard. Numbers change the octave.", spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2)
                 noFill();
                 noStroke();
@@ -283,12 +283,12 @@ function mainScene() {
         }
         if (helpMode_output) {
             if (mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > (spacingOuter * 2 + textBarHeight) && mouseY < (spacingOuter * 2 + textBarHeight + rowHeight)) { //if within area where waveform is drawn
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(spacingOuter * 3 + spacingInner + colWidth * 2.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.25, colWidth - spacingInner * 2, rowHeight / 2 - spacingInner * 2, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("The waveform is plotted here. Click to pause it.", spacingOuter * 3 + spacingInner + colWidth * 2.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.25, colWidth - spacingInner * 2, rowHeight - spacingInner * 2)
                 noFill();
                 noStroke();
@@ -296,12 +296,12 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
             if (toggle_record._hover) {
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight / 2 - spacingInner * 2, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Turn this on to record the sound", spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight - spacingInner * 2)
                 noFill();
                 noStroke();
@@ -309,12 +309,12 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
             if (button_Playback._hover) {
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight / 2 - spacingInner * 2, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Click here to play the recording", spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight - spacingInner * 2)
                 noFill();
                 noStroke();
@@ -322,12 +322,12 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
             if (button_Save._hover) {
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight / 2 - spacingInner * 2, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Click here to save the recording", spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight - spacingInner * 2)
                 noFill();
                 noStroke();
@@ -335,12 +335,12 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
             if (button_loudspeakerMore._hover) {
-                fill(255, 0, 0);
+                fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
                 rect(spacingOuter * 3 + spacingInner + colWidth * 2.25, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 1.5 - spacingInner * 2, rowHeight / 1.5 - spacingInner * 2, 10, 10);
                 stroke("black")
-                fill("white")
+                fill(34, 43, 48)
                 text("Learn more about loudspeakers here", spacingOuter * 3 + spacingInner + colWidth * 2.25, spacingOuter * 2 + textBarHeight + rowHeight * 0.70, colWidth / 1.5 - spacingInner * 2, rowHeight / 1.5 - spacingInner * 2)
                 noFill();
                 noStroke();
@@ -562,16 +562,19 @@ function mainScene() {
 
     function drawRectangles() {
         let rounding = 10;
-        stroke("black");
-
+        strokeWeight(2);
+        //sound
+        stroke(255, 193, 84);
         rect(spacingOuter, spacingOuter, colWidth, textBarHeight, rounding, rounding)
-        rect(spacingOuter * 2 + colWidth, spacingOuter, colWidth, textBarHeight, rounding, rounding)
-        rect(spacingOuter * 3 + colWidth * 2, spacingOuter, colWidth, textBarHeight, rounding, rounding)
-
         rect(spacingOuter, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding); //sound top
         rect(spacingOuter, rowHeight + spacingOuter * 3 + textBarHeight, colWidth, rowHeight, rounding, rounding); //sound bottom
 
+        stroke(0, 196, 154)
+        rect(spacingOuter * 2 + colWidth, spacingOuter, colWidth, textBarHeight, rounding, rounding)
         rect(spacingOuter * 2 + colWidth, spacingOuter * 3 + rowHeight + textBarHeight, colWidth, rowHeight, rounding, rounding); //keyboard
+
+        stroke(88, 44, 77)
+        rect(spacingOuter * 3 + colWidth * 2, spacingOuter, colWidth, textBarHeight, rounding, rounding)
 
         rect(colWidth * 2 + spacingOuter * 3, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding); //waveform
 
@@ -585,7 +588,9 @@ function mainScene() {
     }
 
     function drawLoudspeaker(x, y) {
-        //centre of loudspeaker = x, y
+        strokeWeight(1)
+        stroke(0)
+            //centre of loudspeaker = x, y
         var ampLevel = ampAnalyser.getLevel(); //amplitude of output - not value on a UI element
 
         //change the value based on the master output level every 3 frames, if the synth is turned on
@@ -704,7 +709,7 @@ function mainScene() {
             x = spacingOuter * 2 + colWidth + spacingInner + 18 * (j + horizIncrement); //18 = width of key/2
             y = height - spacingOuter - verticalOffset;
 
-            fill("red");
+            fill(34, 43, 48)
             text(letters[j], x, y, 10);
             noFill();
         }
