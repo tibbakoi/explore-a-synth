@@ -1,9 +1,12 @@
 // main instrument scene
 function mainScene() {
-    let button_loudspeakerMore;
-    let button_soundMore;
+    let button_loudspeakerMore, button_soundMore;
     let waveform = 0;
     let slider_gain;
+    let button_helpMode_sound, button_helpMode_input, button_helpMode_output;
+    let helpMode_sound = 0;
+    let helpMode_input = 0;
+    let helpMode_output = 0;
 
     this.setup = function() {
 
@@ -32,8 +35,11 @@ function mainScene() {
         button_loudspeakerMore = createButton("More", spacingOuter * 3 + colWidth * 2.5 - spacingInner * 2 - 55, height - spacingOuter - spacingInner - 26, 55, 26);
         button_soundMore = createButton("More", spacingOuter + colWidth - spacingInner - 55, spacingOuter * 2 + textBarHeight + rowHeight - spacingInner - 26, 55, 26);
 
+        //help mode buttons
+        button_helpMode_sound = createButton("?", spacingOuter + colWidth - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
+
         //master volume slider - set to currentAmpMain
-        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2, 30, 0, 1);
+        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
 
         //starting parameters - looks recursive but means everything has the correct values on load
         XY_freqAmp.valX = 1; //amplitude at 1
@@ -63,16 +69,30 @@ function mainScene() {
 
     this.draw = function() {
 
+        // figure out whether in help mode or not
+        if (button_helpMode_sound.isPressed && helpMode_sound == 0) { //if button pressed to turn on 
+            helpMode_sound = 1;
+            button_helpMode_sound.setStyle({
+                fillBg: color("lightgray"),
+            });
+        } else if (button_helpMode_sound.isPressed && helpMode_sound == 1) { //if button pressed to turn off
+            helpMode_sound = 0;
+            button_helpMode_sound.setStyle({
+                fillBg: color(130),
+            });
+        }
+
+        //----- draw stuff -----//
+        drawRectangles();
+        drawLoudspeaker();
+        drawRecordLED();
+        drawGui();
+
         //if mouse is NOT pressed and within region where waveform is drawn, plot live version
         if (!(mouseIsPressed && mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > (spacingOuter * 2 + textBarHeight) && mouseY < (spacingOuter * 2 + textBarHeight + rowHeight))) {
             waveform = fftMain.waveform();
         }
         drawWaveform(waveform, colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + textBarHeight + spacingOuter * 2 - 1, spacingOuter * 2 + 1 + textBarHeight);
-
-        drawRectangles();
-        drawLoudspeaker();
-        drawRecordLED();
-        drawGui();
 
         //various text bits
         fill("white");
@@ -84,7 +104,93 @@ function mainScene() {
         text('Record', spacingOuter * 3 + spacingInner * 2 + colWidth * 2.75, spacingOuter * 3 + textBarHeight + spacingInner + rowHeight + 15);
         textAlign(LEFT, CENTER);
         text('Filtering and FX...?!', spacingOuter + spacingInner, spacingOuter * 2 + textBarHeight + rowHeight * 1.5);
+        textSize(18)
+        text(round(slider_gain.val * 100) + "%", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 15)
+        textSize(25)
+
+        //explainer boxes
+        textAlign(CENTER, CENTER)
+        text("This is where we design the sound.", spacingOuter, spacingOuter + spacingInner, colWidth, textBarHeight);
+        text("This is where our inputs control the sound.", spacingOuter * 2 + colWidth, spacingOuter + spacingInner, colWidth, textBarHeight);
+        text("This is where the sound is outputted.", spacingOuter * 3 + spacingInner + colWidth * 2, spacingOuter + spacingInner, colWidth - spacingInner, textBarHeight);
+        textAlign(LEFT, CENTER);
         noFill();
+
+        //display osc type label based on which toggle is active
+        if (toggle_Type1.val) {
+            fill("white");
+            noStroke();
+            text('Sine', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
+        } else if (toggle_Type2.val) {
+            fill("white");
+            noStroke();
+            text('Saw', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
+        } else if (toggle_Type3.val) {
+            fill("white");
+            noStroke();
+            text('Tri', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
+        } else if (toggle_Type4.val) {
+            fill("white");
+            noStroke();
+            text('Sqr', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
+        }
+
+        //----- pop up hover over boxes if help mode on - draw on top of everything else
+        if (helpMode_sound) {
+            if (toggle_OnOff._hover) {
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(270, 150, 150, 80, 10, 10);
+                stroke("black")
+                fill("white")
+                text("Turn on and off here", 270, 150, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (toggle_Type1._hover || toggle_Type2._hover || toggle_Type3._hover || toggle_Type4._hover) {
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(270, 150, 150, 90, 10, 10);
+                stroke("black")
+                fill("white")
+                text("Change the shape of the wave here", 270, 150, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (slider_gain._hover) {
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(270, 150, 150, 90, 10, 10);
+                stroke("black")
+                fill("white")
+                text("Change the main volume here", 270, 150, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (button_soundMore._hover) {
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(270, 150, 150, 90, 10, 10);
+                stroke("black")
+                fill("white")
+                text("More settings under here", 270, 150, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+        }
+
 
         //----- define UI interactions -----//
         // turn synth on/off
@@ -129,25 +235,6 @@ function mainScene() {
             currentType = 'square';
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
-        }
-
-        //display osc type label based on which toggle is active
-        if (toggle_Type1.val) {
-            fill("white");
-            noStroke();
-            text('Sine', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        } else if (toggle_Type2.val) {
-            fill("white");
-            noStroke();
-            text('Saw', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        } else if (toggle_Type3.val) {
-            fill("white");
-            noStroke();
-            text('Tri', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        } else if (toggle_Type4.val) {
-            fill("white");
-            noStroke();
-            text('Sqr', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
         }
 
         //X-Y frequency/amplitude control - only when keyboard isn't enabled - otherwise too many amplitude values at once
@@ -326,17 +413,20 @@ function mainScene() {
     function drawRectangles() {
         let rounding = 10;
         stroke("black");
-        rect(spacingOuter, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding); //top left
-        rect(spacingOuter, rowHeight + spacingOuter * 3 + textBarHeight, colWidth, rowHeight, rounding, rounding); //bottom left
 
-        rect(spacingOuter * 2 + colWidth, spacingOuter * 3 + rowHeight + textBarHeight, colWidth, rowHeight, rounding, rounding); //bottom centre
+        rect(spacingOuter, spacingOuter, colWidth, textBarHeight, rounding, rounding)
+        rect(spacingOuter * 2 + colWidth, spacingOuter, colWidth, textBarHeight, rounding, rounding)
+        rect(spacingOuter * 3 + colWidth * 2, spacingOuter, colWidth, textBarHeight, rounding, rounding)
 
-        rect(colWidth * 2 + spacingOuter * 3, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding); //top right
+        rect(spacingOuter, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding); //sound top
+        rect(spacingOuter, rowHeight + spacingOuter * 3 + textBarHeight, colWidth, rowHeight, rounding, rounding); //sound bottom
+
+        rect(spacingOuter * 2 + colWidth, spacingOuter * 3 + rowHeight + textBarHeight, colWidth, rowHeight, rounding, rounding); //keyboard
+
+        rect(colWidth * 2 + spacingOuter * 3, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding); //waveform
 
         rect(colWidth * 2 + spacingOuter * 3, rowHeight + spacingOuter * 3 + textBarHeight, colWidth / 2 - spacingInner, rowHeight, rounding, rounding); //bottom right
         rect(colWidth * 2.5 + spacingOuter * 3 + spacingInner, rowHeight + spacingOuter * 3 + textBarHeight, colWidth / 2 - spacingInner, rowHeight, rounding, rounding); //bottom right
-
-
 
 
         // perhaps some outer boxes to indicate different sections?

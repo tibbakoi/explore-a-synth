@@ -2,10 +2,10 @@ function soundScene() {
     // some aspects duplicated from main GUI
     let button_mainGui;
     let slider_gain, slider_freqCopy, slider_gainLFO, slider_freqLFO;
-    let gainKnob_oscLFO, freqKnob_oscLFO;
     let waveformMain = 0;
     let waveformCopy = 0;
     let waveformLFO = 0;
+    let text_freqValue, text_freqValue2;
 
     this.setup = function() {
         //UI objects using touchGUI library
@@ -20,10 +20,10 @@ function soundScene() {
 
         toggle_OnOff2 = createCheckbox("OnOff", spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + spacingInner, buttonHeight, buttonHeight);
 
-        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2, 30, 0, 1);
+        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
         slider_freqCopy = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 1, 127);
 
-        slider_gainLFO = createSlider("gainLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2, 30, 0, 1);
+        slider_gainLFO = createSlider("gainLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
         slider_freqLFO = createSlider("freqLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 1, 127);
 
         //back to main GUI
@@ -52,15 +52,28 @@ function soundScene() {
 
         drawGui();
 
+        //various text things
         fill("white");
         textSize(25);
         textAlign(LEFT, CENTER);
         text('Sound', spacingOuter + spacingInner * 2 + 50, spacingOuter * 2 + textBarHeight + spacingInner + 25);
-        textSize(20)
-        text(round(midiToFreq(slider_freqCopy.val)), spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
-        text(round(midiToFreq(slider_freqLFO.val)), spacingOuter * 2 + colWidth * 2 - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
-        noFill();
 
+        textSize(18)
+        if (slider_freqCopy.val > freqToMidi(1000)) {
+            text(round(midiToFreq(slider_freqCopy.val) / 1000, 1) + "kHz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+        } else {
+            text(round(midiToFreq(slider_freqCopy.val)) + "Hz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+        }
+
+        if (slider_freqLFO.val > freqToMidi(1000)) {
+            text(round(midiToFreq(slider_freqLFO.val) / 1000, 1) + "kHz", spacingOuter * 2 + colWidth * 2 - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+        } else {
+            text(round(midiToFreq(slider_freqLFO.val)) + "Hz", spacingOuter * 2 + colWidth * 2 - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+        }
+        text(round(slider_gain.val * 100) + "%", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 15)
+        text(round(slider_gainLFO.val * 100) + "%", spacingOuter * 2 + colWidth * 2 - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 15)
+        textSize(25);
+        noFill();
 
         // turn synth on/off - both main and copy
         if (toggle_OnOff.val) {
@@ -188,6 +201,10 @@ function soundScene() {
         let rounding = 10;
         stroke("black");
         noFill();
+
+        rect(spacingOuter, spacingOuter, colWidth, textBarHeight, rounding, rounding)
+        rect(spacingOuter * 2 + colWidth, spacingOuter, colWidth, textBarHeight, rounding, rounding)
+        rect(spacingOuter * 3 + colWidth * 2, spacingOuter, colWidth, textBarHeight, rounding, rounding)
 
         rect(spacingOuter, spacingOuter * 2 + textBarHeight, colWidth, rowHeight * 2 + spacingOuter, rounding, rounding); //top left
 
