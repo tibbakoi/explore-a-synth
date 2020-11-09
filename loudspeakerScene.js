@@ -13,8 +13,13 @@ function loudspeakerScene() {
         this.setup();
     };
     this.draw = function() {
-        background("lightblue");
+        background("darkblue");
         drawGui();
+
+        textAlign(CENTER, CENTER)
+        fill("white")
+        stroke("black")
+        text("There will be information about how sound/vibration/loudspeakers work here", width / 2, height / 2)
 
         // return to main scene
         if (button_mainGui2.isPressed) {

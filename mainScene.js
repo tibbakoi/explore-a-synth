@@ -7,6 +7,9 @@ function mainScene() {
     let helpMode_sound = 0;
     let helpMode_input = 0;
     let helpMode_output = 0;
+    let loudspeakerWidth = 100;
+    let loudspeakerX = (spacingOuter * 3) + (colWidth * 2.25);;
+    let loudspeakerY = (spacingOuter * 3) + (rowHeight * 1.5) + textBarHeight;
 
     this.setup = function() {
 
@@ -38,6 +41,8 @@ function mainScene() {
         //help mode buttons
         button_helpMode_sound = createButton("?", spacingOuter + colWidth - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
         button_helpMode_input = createButton("?", spacingOuter * 2 + colWidth * 2 - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
+        button_helpMode_output = createButton("?", spacingOuter * 3 + colWidth * 3 - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
+
 
         //master volume slider - set to currentAmpMain
         slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
@@ -70,7 +75,7 @@ function mainScene() {
 
     this.draw = function() {
 
-        //---- figure out whether in help mode or not ----//
+        //---- figure out whether in help mode or not, change button style ----//
         //sound section
         if (button_helpMode_sound.isPressed && helpMode_sound == 0) { //if button pressed to turn on 
             helpMode_sound = 1;
@@ -95,10 +100,22 @@ function mainScene() {
                 fillBg: color(130),
             });
         }
+        //output section
+        if (button_helpMode_output.isPressed && helpMode_output == 0) { //if button pressed to turn on 
+            helpMode_output = 1;
+            button_helpMode_output.setStyle({
+                fillBg: color("lightgray"),
+            });
+        } else if (button_helpMode_output.isPressed && helpMode_output == 1) { //if button pressed to turn off
+            helpMode_output = 0;
+            button_helpMode_output.setStyle({
+                fillBg: color(130),
+            });
+        }
 
         //----- draw stuff -----//
         drawRectangles();
-        drawLoudspeaker();
+        drawLoudspeaker(loudspeakerX, loudspeakerY);
         drawRecordLED();
         drawGui();
 
@@ -204,13 +221,13 @@ function mainScene() {
                 rect(270, 150, 150, 90, 10, 10);
                 stroke("black")
                 fill("white")
-                text("More settings under here", 270, 150, 150, 150)
+                text("Learn more here", 270, 150, 150, 150)
                 noFill();
                 noStroke();
                 rectMode(CORNER)
                 textAlign(LEFT, CENTER)
             }
-            if (mouseY > spacingOuter * 3 + textBarHeight + rowHeight) { // placeholder for filtering/FX box
+            if (mouseY > spacingOuter * 3 + textBarHeight + rowHeight && mouseX < spacingOuter + colWidth) { // placeholder for filtering/FX box
                 fill(255, 0, 0);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
@@ -252,11 +269,76 @@ function mainScene() {
 
                 drawKeyboardHelp();
 
-
                 textAlign(LEFT, CENTER)
             }
         }
-
+        if (helpMode_output) {
+            if (mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > (spacingOuter * 2 + textBarHeight) && mouseY < (spacingOuter * 2 + textBarHeight + rowHeight)) { //if within area where waveform is drawn
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(spacingOuter * 3 + spacingInner + colWidth * 2.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.25, colWidth - spacingInner * 2, rowHeight / 2 - spacingInner * 2, 10, 10);
+                stroke("black")
+                fill("white")
+                text("The waveform is plotted here. Click on it to pause it.", spacingOuter * 3 + spacingInner + colWidth * 2.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.25, colWidth - spacingInner * 2, rowHeight - spacingInner * 2)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (toggle_record._hover) {
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight / 2 - spacingInner * 2, 10, 10);
+                stroke("black")
+                fill("white")
+                text("Turn this on to record the sound", spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight - spacingInner * 2)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (button_Playback._hover) {
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight / 2 - spacingInner * 2, 10, 10);
+                stroke("black")
+                fill("white")
+                text("Click here to play the recording", spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight - spacingInner * 2)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (button_Save._hover) {
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight / 2 - spacingInner * 2, 10, 10);
+                stroke("black")
+                fill("white")
+                text("Click here to save the recording", spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 2 - spacingInner * 2, rowHeight - spacingInner * 2)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (button_loudspeakerMore._hover) {
+                fill(255, 0, 0);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(spacingOuter * 3 + spacingInner + colWidth * 2.25, spacingOuter * 2 + textBarHeight + rowHeight * 0.75, colWidth / 1.5 - spacingInner * 2, rowHeight / 1.5 - spacingInner * 2, 10, 10);
+                stroke("black")
+                fill("white")
+                text("Learn more about loudspeakers here", spacingOuter * 3 + spacingInner + colWidth * 2.25, spacingOuter * 2 + textBarHeight + rowHeight * 0.70, colWidth / 1.5 - spacingInner * 2, rowHeight / 1.5 - spacingInner * 2)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+        }
 
         //----- define UI interactions -----//
         // turn synth on/off
@@ -326,8 +408,6 @@ function mainScene() {
         if (toggle_controlType.val) {
             envMain.mult(slider_gain.val);
         }
-
-
 
         //playing via keyboard(1=keyboard on)
         if (keyIsPressed) {
@@ -495,27 +575,25 @@ function mainScene() {
         // rect(spacingOuter - 2, spacingOuter - 2, colWidth + 4, rowHeight * 2 + 4 + spacingOuter, rounding, rounding)
     }
 
-    function drawLoudspeaker() {
+    function drawLoudspeaker(x, y) {
         //centre of loudspeaker = x, y
-        var x = (spacingOuter * 3) + (colWidth * 2.25);;
-        var y = (spacingOuter * 3) + (rowHeight * 1.5) + textBarHeight;
-        var ampLevel = ampAnalyser.getLevel();
+        var ampLevel = ampAnalyser.getLevel(); //amplitude of output - not value on a UI element
 
         //change the value based on the master output level every 3 frames, if the synth is turned on
         // if amplitude is 0 on either control, currentWidth = 100
         if (frameCount % 3 == true && toggle_OnOff.val) {
-            currentWidth = 100 + random(0, 10) * ampLevel * 4; //*4 to give more visual change
+            loudspeakerWidth = 100 + random(0, 10) * ampLevel * 4; //*4 to give more visual change
         }
 
         //draw 
         fill("grey");
-        circle(x, y, currentWidth);
+        circle(x, y, loudspeakerWidth);
         fill("black");
-        circle(x, y, currentWidth * 0.9);
+        circle(x, y, loudspeakerWidth * 0.9);
         fill("grey");
-        circle(x, y, currentWidth * 0.8);
+        circle(x, y, loudspeakerWidth * 0.8);
         fill("black");
-        circle(x, y, currentWidth * 0.4);
+        circle(x, y, loudspeakerWidth * 0.4);
         noFill();
 
     }

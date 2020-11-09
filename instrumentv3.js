@@ -15,9 +15,6 @@ let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 //osc type
 let toggle_record; //record
 let XY_freqAmp; //x-y control
 
-//re: loudspeaker graphic - needs to be global so that draws when no sound playing
-let currentWidth = 100;
-
 //audio stuff
 let oscillatorMain, oscillatorCopy, oscillatorLFO; //oscCopy = duplicate of oscMain for the purposes of plotting before/after modulation
 let fftMain, fftCopy, fftLFO;
