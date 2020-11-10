@@ -29,6 +29,11 @@ function mainScene() {
 
         //X-Y pad
         XY_freqAmp = createSlider2d("freqAmp", colWidth + spacingOuter * 2, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, 0, 1, 1, 127);
+        XY_freqAmp.setStyle({
+            strokeBg: color(0, 196, 154),
+            strokeBgHover: color(0, 196, 154),
+            strokeBgActive: color(0, 196, 154)
+        });
 
         //keyboard toggles
         toggle_controlType = createCheckbox("control", spacingOuter * 2 + colWidth + spacingInner, spacingOuter * 3 + rowHeight + spacingInner + textBarHeight, buttonHeight, buttonHeight);
@@ -54,7 +59,7 @@ function mainScene() {
         envMain = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
 
         //master volume slider - set to currentAmpMain
-        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
+        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0.01, 1);
 
         //starting parameters - looks recursive but means everything has the correct values on load
         XY_freqAmp.valX = 1; //amplitude at 1
@@ -69,6 +74,8 @@ function mainScene() {
 
         oscillatorLFO.freq(currentFreqLFO);
         oscillatorLFO.amp(currentAmpLFO, 0.01);
+        oscillatorLFO_scaled.freq(currentFreqLFO);
+        oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
 
         noFill();
         stroke('white');
@@ -152,7 +159,7 @@ function mainScene() {
         textAlign(CENTER, CENTER)
         text("This is where we design the sound.", spacingOuter, spacingOuter + spacingInner, colWidth, textBarHeight);
         text("This is where our inputs control the sound.", spacingOuter * 2 + colWidth, spacingOuter + spacingInner, colWidth, textBarHeight);
-        text("This is where the sound is outputted.", spacingOuter * 3 + spacingInner + colWidth * 2, spacingOuter + spacingInner, colWidth - spacingInner, textBarHeight);
+        text("This is where the output sound is represented.", spacingOuter * 3 + spacingInner + colWidth * 2, spacingOuter + spacingInner, colWidth - spacingInner, textBarHeight);
         textAlign(LEFT, CENTER);
         noFill();
 
@@ -258,7 +265,7 @@ function mainScene() {
                 rect(spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2, 10, 10);
                 stroke("black")
                 fill(34, 43, 48)
-                text("Change freqency and volume at the same time here. Left-right is volume (up to the value on the main volume slider) and up-down is frequency", spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2)
+                text("Change frequency and volume at the same time here. Left-right is volume (up to the value on the main volume slider) and up-down is frequency", spacingOuter + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight * 0.5, colWidth - spacingInner * 2, rowHeight - spacingInner * 2)
                 noFill();
                 noStroke();
                 rectMode(CORNER)
@@ -413,9 +420,15 @@ function mainScene() {
             oscillatorCopy.amp(currentAmpMain, 0.01);
         }
 
-        //if in keyboard board, multiply the envelope when gain knob changes
+        //if in keyboard board, multiply the envelope when slider val changes
         if (toggle_controlType.val) {
             envMain.mult(slider_gain.val);
+        }
+
+        //if turning keyboard mode off, set gain back to current gain value
+        if (toggle_controlType.isPressed && !toggle_controlType.val) {
+            oscillatorMain.amp(currentAmpMain);
+            oscillatorCopy.amp(currentAmpMain);
         }
 
         //playing via keyboard(1=keyboard on)
@@ -542,16 +555,16 @@ function mainScene() {
     function playNote() {
         currentFreqMain = midiToFreq(currentNote + currentOctave);
         oscillatorMain.freq(currentFreqMain);
+        oscillatorCopy.freq(currentFreqMain);
         envMain.play(oscillatorMain); //play with envelope
-        envMain.play(oscillatorLFO); //play with envelope
-
+        //NB - all other osc are disconnected, and putting through env sets amp to 0 on them, so are not touched here
     }
 
     //----- drawing things ----//
     function drawRecordLED() {
         if (frameCount % 60 > 29 && toggle_record.val) { //flash on/off once a second
             fill("red");
-            circle(spacingOuter * 3 + spacingInner * 2 + colWidth * 2 + 250, height - buttonHeight * 3 - spacingOuter * 2 - spacingInner * 3 + 15, 20);
+            circle(spacingOuter * 3 + spacingInner * 2 + colWidth * 2 + 250, height - buttonHeight * 3 - spacingOuter - spacingInner * 3 + 15, 20);
             noFill();
         } else {
             fill("darkred");

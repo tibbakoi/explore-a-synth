@@ -18,6 +18,9 @@ function loudspeakerScene() {
 
         textAlign(CENTER, CENTER)
         stroke(88, 44, 77)
+        noFill()
+        strokeWeight(2)
+        rect(spacingOuter, spacingOuter, width - spacingOuter * 2, height - spacingOuter * 2, 10, 10)
         fill(88, 44, 77)
         text("There will be information about how sound/vibration/loudspeakers work here", width / 2, height / 2)
 

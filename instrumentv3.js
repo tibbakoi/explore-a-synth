@@ -16,11 +16,11 @@ let toggle_record; //record
 let XY_freqAmp; //x-y control
 
 //audio stuff
-let oscillatorMain, oscillatorCopy, oscillatorLFO; //oscCopy = duplicate of oscMain for the purposes of plotting before/after modulation
+let oscillatorMain, oscillatorCopy, oscillatorLFO, oscillatorLFO_scaled; //oscCopy = duplicate of oscMain for the purposes of plotting before/after modulation
 let fftMain, fftCopy, fftLFO;
-let currentOctave = 48; //3rd octave
+let currentOctave = 60; //3rd octave
 let currentNote = 0; //C
-let currentAmpMain = 0;
+let currentAmpMain = 0.01; //main volume doesnt go to zero
 let currentAmpLFO = 0;
 let currentFreqMain = 440;
 let currentFreqLFO = 110;
@@ -36,16 +36,20 @@ function setup() {
     canvas.parent('instrumentv1'); //specifies which div to put the canvas in
 
     //p5 sound objects - external to any specific scene
-    oscillatorMain = new p5.Oscillator('sine');
-    oscillatorCopy = new p5.Oscillator('sine');
+    oscillatorMain = new p5.Oscillator('sine'); //main output
+    oscillatorCopy = new p5.Oscillator('sine'); //for plotting carrier when modulated
     oscillatorLFO = new p5.Oscillator('sine'); //for modulation
+    oscillatorLFO_scaled = new p5.Oscillator('sine'); //for plotting scaled modulation
+
     oscillatorCopy.disconnect(); //disconnect from audio output so can plot signal but have no sound
     oscillatorLFO.disconnect(); //doesn't need to be connected to audio output if used for modulation
+    oscillatorLFO_scaled.disconnect(); //doesn't need to be connected to audio output if used for plotting scaled modulation
 
     //oscillator setup
     oscillatorMain.amp(currentAmpMain);
     oscillatorCopy.amp(currentAmpMain);
-    oscillatorLFO.amp(0);
+    oscillatorLFO.amp(currentAmpLFO);
+    oscillatorLFO_scaled.amp(currentAmpLFO / 5000); //is scale of slider
 
     fftMain = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
     fftCopy = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
@@ -53,7 +57,7 @@ function setup() {
 
     fftMain.setInput(oscillatorMain);
     fftCopy.setInput(oscillatorCopy);
-    fftLFO.setInput(oscillatorLFO);
+    fftLFO.setInput(oscillatorLFO_scaled);
 
     //set up scene manager
     mgr = new SceneManager();
@@ -122,7 +126,7 @@ function drawWaveform(waveform, x1, x2, y1, y2) {
     beginShape();
     // vertex(0, height);
     for (let j = 0; j < waveform.length; j++) {
-        vertex(map(j, 0, waveform.length, x1, x2), map(waveform[j], -1, 1, y1, y2));
+        vertex(map(j, 0, waveform.length, x1, x2), map(waveform[j], -1, 1, y1, y2)); //maps from -1 to 1 to the ycoord limits
     }
     // vertex(width, height);
     endShape();
