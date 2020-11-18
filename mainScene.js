@@ -59,7 +59,7 @@ function mainScene() {
         envMain = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
 
         //master volume slider - set to currentAmpMain
-        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0.01, 1);
+        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
 
         //starting parameters - looks recursive but means everything has the correct values on load
         XY_freqAmp.valX = 1; //amplitude at 1
@@ -152,7 +152,7 @@ function mainScene() {
         textAlign(LEFT, CENTER);
         text('Filtering and FX...?!', spacingOuter + spacingInner, spacingOuter * 2 + textBarHeight + rowHeight * 1.5);
         textSize(18)
-        text(round(slider_gain.val * 100) + "%", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 15)
+        text(round(slider_gain.val * 100) + "%", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 10)
         textSize(25)
 
         //explainer boxes
@@ -575,7 +575,7 @@ function mainScene() {
 
     function drawRectangles() {
         let rounding = 10;
-        strokeWeight(2);
+        strokeWeight(4);
         //sound
         stroke(255, 193, 84);
         rect(spacingOuter, spacingOuter, colWidth, textBarHeight, rounding, rounding)
@@ -722,7 +722,7 @@ function mainScene() {
             x = spacingOuter * 2 + colWidth + spacingInner + 18 * (j + horizIncrement); //18 = width of key/2
             y = height - spacingOuter - verticalOffset;
 
-            fill(34, 43, 48)
+            fill("red")
             text(letters[j], x, y, 10);
             noFill();
         }

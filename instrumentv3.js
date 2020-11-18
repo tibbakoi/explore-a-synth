@@ -20,7 +20,7 @@ let oscillatorMain, oscillatorCopy, oscillatorLFO, oscillatorLFO_scaled; //oscCo
 let fftMain, fftCopy, fftLFO;
 let currentOctave = 60; //3rd octave
 let currentNote = 0; //C
-let currentAmpMain = 0.01; //main volume doesnt go to zero
+let currentAmpMain = 0; //main volume doesnt go to zero
 let currentAmpLFO = 0;
 let currentFreqMain = 440;
 let currentFreqLFO = 110;

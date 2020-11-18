@@ -208,7 +208,7 @@ function mainScene() {
         envMain = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
 
         //master volume slider - set to currentAmpMain
-        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0.01, 1);
+        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
 
         //starting parameters - looks recursive but means everything has the correct values on load
         XY_freqAmp.valX = 1; //amplitude at 1
@@ -724,7 +724,7 @@ function mainScene() {
 
     function drawRectangles() {
         let rounding = 10;
-        strokeWeight(2);
+        strokeWeight(4);
         //sound
         stroke(255, 193, 84);
         rect(spacingOuter, spacingOuter, colWidth, textBarHeight, rounding, rounding)
@@ -871,7 +871,7 @@ function mainScene() {
             x = spacingOuter * 2 + colWidth + spacingInner + 18 * (j + horizIncrement); //18 = width of key/2
             y = height - spacingOuter - verticalOffset;
 
-            fill(34, 43, 48)
+            fill("red")
             text(letters[j], x, y, 10);
             noFill();
         }
@@ -911,7 +911,7 @@ function soundScene() {
 
         toggle_OnOff2 = createCheckbox("OnOff", spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + spacingInner, buttonHeight, buttonHeight);
 
-        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0.01, 1);
+        slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
         slider_freqCopy = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 1, 127);
 
         slider_depthLFO = createSlider("gainLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 5000);
@@ -1236,7 +1236,7 @@ function soundScene() {
     function drawRectangles() {
         let rounding = 10;
         stroke(255, 193, 84);
-        strokeWeight(2);
+        strokeWeight(4);
         noFill();
 
         rect(spacingOuter, spacingOuter, colWidth, textBarHeight, rounding, rounding)
