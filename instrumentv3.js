@@ -28,6 +28,7 @@ let isOn = 0;
 let isLFOon = 0;
 let currentType = 'sine';
 let ampAnalyser;
+let maxMIDIval = 124;
 
 //scene manager
 let mgr;

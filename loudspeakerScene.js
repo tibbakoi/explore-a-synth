@@ -39,7 +39,7 @@ function loudspeakerScene() {
         toggle_Type4 = createCheckbox("Squ", spacingOuter + spacingInner * 4 + buttonHeight * 3, spacingOuter * 2 + textBarHeight + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
 
         slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
-        slider_freqCopy = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 1, 127);
+        slider_freqCopy = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 1, maxMIDIval);
 
         button_helpMode_osc = createButton("?", spacingOuter + colWidth - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
 
@@ -52,7 +52,7 @@ function loudspeakerScene() {
         //set slider values, adjust loudspeaker based on frequency value
         slider_gain.val = currentAmpMain;
         slider_freqCopy.val = freqToMidi(currentFreqMain);
-        speedAdjustment = 60 - round(map(slider_freqCopy.val, 1, 127, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
+        speedAdjustment = 60 - round(map(slider_freqCopy.val, 1, maxMIDIval, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
 
 
     };
@@ -226,7 +226,7 @@ function loudspeakerScene() {
             currentFreqMain = midiToFreq(slider_freqCopy.val);
             oscillatorCopy.freq(currentFreqMain);
             oscillatorMain.freq(currentFreqMain);
-            speedAdjustment = 60 - round(map(slider_freqCopy.val, 1, 127, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
+            speedAdjustment = 60 - round(map(slider_freqCopy.val, 1, maxMIDIval, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
         }
 
         //----- get and draw waveforms -----//
