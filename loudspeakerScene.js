@@ -2,7 +2,7 @@ function loudspeakerScene() {
     let slider_gain, slider_freqCopy;
     let waveformCopy = 0;
     let helpMode_osc = 0;
-    let button_mainGui2;
+    let button_helpMode_osc, button_mainGui2;
 
     //everything loudspeaker drawn relative to top corner of magnet with defined widths and heights
     let topCornerX = 600;
@@ -83,7 +83,7 @@ function loudspeakerScene() {
         text("This is a loudspeaker cut in half. Change the volume and frequency and look what happens!", spacingOuter * 2 + colWidth, spacingOuter + spacingInner, colWidth * 2 + spacingOuter, textBarHeight);
         textSize(20);
         text("1) Electrical current flows through a coil of wire...", spacingOuter * 2 + colWidth + 5, spacingOuter * 2 + textBarHeight * 2.35, colWidth * 0.80, textBarHeight);
-        text("2) This creates a magnetic field and an electromagnetic...", spacingOuter * 2 + colWidth * 1.5, spacingOuter * 2 + textBarHeight, colWidth * 0.80, textBarHeight);
+        text("2) This creates a magnetic field and an electromagnet...", spacingOuter * 2 + colWidth * 1.5, spacingOuter * 2 + textBarHeight, colWidth * 0.80, textBarHeight);
         text("3) The electromagnet repels and attracts against a permanent magnet...", spacingOuter * 2 + colWidth * 1.5 + 50, spacingOuter * 2 + textBarHeight * 3.75, colWidth * 0.80, textBarHeight);
         text("4) Which makes the cone vibrate and move the air particles - creating sound!", spacingOuter * 2 + colWidth * 2.45, spacingOuter * 2 + textBarHeight * 2.35, colWidth * 0.6);
 
