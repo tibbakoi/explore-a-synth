@@ -33,7 +33,7 @@ function soundScene() {
         slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
         slider_freqCopy = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 1, maxMIDIval);
 
-        slider_depthLFO = createSlider("gainLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 5000);
+        slider_depthLFO = createSlider("gainLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + buttonHeight * 1.8, colWidth - spacingInner * 2 - 50, 30, 0, 5000);
         slider_freqLFO = createSlider("freqLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 1, 120);
 
         //help mode
@@ -110,14 +110,19 @@ function soundScene() {
         }
 
         if (slider_freqLFO.val > freqToMidi(1000)) {
-            text(round(midiToFreq(slider_freqLFO.val) / 1000, 1) + "kHz", spacingOuter * 2 + colWidth * 2 - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+            speedString = (round(midiToFreq(slider_freqLFO.val) / 1000, 1) + "kHz");
         } else {
-            text(round(midiToFreq(slider_freqLFO.val)) + "Hz", spacingOuter * 2 + colWidth * 2 - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+            speedString = (round(midiToFreq(slider_freqLFO.val)) + "Hz");
         }
-        text(round(slider_gain.val * 100) + "%", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 15)
-        text(round(slider_depthLFO.val), spacingOuter * 2 + colWidth * 2 - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 15)
-        textSize(25);
+        text("Amount: " + round(slider_depthLFO.val), spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + buttonHeight * 1.5)
+        text("Speed: " + speedString, spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + buttonHeight * 2.8)
+
+        textSize(15)
+        text("Vol: " + round(slider_gain.val, 1), spacingOuter + colWidth - spacingInner * 2 - 42, spacingOuter * 2 + textBarHeight + rowHeight - 65)
+
+
         noFill();
+        textSize(25);
 
         //display osc type label based on which toggle is active
         changeTypeLabel();
