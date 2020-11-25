@@ -14,6 +14,15 @@ function mainScene() {
     let button_Playback, button_Save;
     let envMain;
 
+    //styling for help buttons
+    let helpButtonActiveStyle = {
+        fillBg: color("white"),
+    };
+
+    let helpButtonInactiveStyle = {
+        fillBg: color(130),
+    };
+
     this.setup = function() {
 
         //UI objects using touchGUI library
@@ -93,38 +102,26 @@ function mainScene() {
         //sound section
         if (button_helpMode_sound.isPressed && helpMode_sound == 0) { //if button pressed to turn on 
             helpMode_sound = 1;
-            button_helpMode_sound.setStyle({
-                fillBg: color("lightgray"),
-            });
+            button_helpMode_sound.setStyle(helpButtonActiveStyle);
         } else if (button_helpMode_sound.isPressed && helpMode_sound == 1) { //if button pressed to turn off
             helpMode_sound = 0;
-            button_helpMode_sound.setStyle({
-                fillBg: color(130),
-            });
+            button_helpMode_sound.setStyle(helpButtonInactiveStyle);
         }
         //input section
         if (button_helpMode_input.isPressed && helpMode_input == 0) { //if button pressed to turn on 
             helpMode_input = 1;
-            button_helpMode_input.setStyle({
-                fillBg: color("lightgray"),
-            });
+            button_helpMode_input.setStyle(helpButtonActiveStyle);
         } else if (button_helpMode_input.isPressed && helpMode_input == 1) { //if button pressed to turn off
             helpMode_input = 0;
-            button_helpMode_input.setStyle({
-                fillBg: color(130),
-            });
+            button_helpMode_input.setStyle(helpButtonInactiveStyle);
         }
         //output section
         if (button_helpMode_output.isPressed && helpMode_output == 0) { //if button pressed to turn on 
             helpMode_output = 1;
-            button_helpMode_output.setStyle({
-                fillBg: color("lightgray"),
-            });
+            button_helpMode_output.setStyle(helpButtonActiveStyle);
         } else if (button_helpMode_output.isPressed && helpMode_output == 1) { //if button pressed to turn off
             helpMode_output = 0;
-            button_helpMode_output.setStyle({
-                fillBg: color(130),
-            });
+            button_helpMode_output.setStyle(helpButtonInactiveStyle);
         }
 
         //----- draw stuff -----//

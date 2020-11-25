@@ -18,6 +18,15 @@ function loudspeakerScene() {
     let startingSpeed = 0;
     let speedAdjustment = 0;
 
+    //styling for help buttons
+    let helpButtonActiveStyle = {
+        fillBg: color("white"),
+    };
+
+    let helpButtonInactiveStyle = {
+        fillBg: color(130),
+    };
+
     this.setup = function() {
 
         guiLoudspeaker = createGui();
@@ -44,6 +53,8 @@ function loudspeakerScene() {
         slider_gain.val = currentAmpMain;
         slider_freqCopy.val = freqToMidi(currentFreqMain);
         speedAdjustment = 60 - round(map(slider_freqCopy.val, 1, 127, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
+
+
     };
     this.enter = function() {
         this.setup();
@@ -55,14 +66,10 @@ function loudspeakerScene() {
         //osc1 section
         if (button_helpMode_osc.isPressed && helpMode_osc == 0) { //if button pressed to turn on 
             helpMode_osc = 1;
-            button_helpMode_osc.setStyle({
-                fillBg: color("lightgray"),
-            });
+            button_helpMode_osc.setStyle(helpButtonActiveStyle);
         } else if (button_helpMode_osc.isPressed && helpMode_osc == 1) { //if button pressed to turn off
             helpMode_osc = 0;
-            button_helpMode_osc.setStyle({
-                fillBg: color(130),
-            });
+            button_helpMode_osc.setStyle(helpButtonInactiveStyle);
         }
 
         //----- draw stuff -----//

@@ -8,6 +8,15 @@ function soundScene() {
     let helpMode_osc1 = 0;
     let helpMode_osc2 = 0;
 
+    //styling for help buttons
+    let helpButtonActiveStyle = {
+        fillBg: color("white"),
+    };
+
+    let helpButtonInactiveStyle = {
+        fillBg: color(130),
+    };
+
     this.setup = function() {
         //UI objects using touchGUI library
         guiSound = createGui();
@@ -58,26 +67,18 @@ function soundScene() {
         //osc1 section
         if (button_helpMode_osc1.isPressed && helpMode_osc1 == 0) { //if button pressed to turn on 
             helpMode_osc1 = 1;
-            button_helpMode_osc1.setStyle({
-                fillBg: color("lightgray"),
-            });
+            button_helpMode_osc1.setStyle(helpButtonActiveStyle);
         } else if (button_helpMode_osc1.isPressed && helpMode_osc1 == 1) { //if button pressed to turn off
             helpMode_osc1 = 0;
-            button_helpMode_osc1.setStyle({
-                fillBg: color(130),
-            });
+            button_helpMode_osc1.setStyle(helpButtonInactiveStyle);
         }
         //osc2 section
         if (button_helpMode_osc2.isPressed && helpMode_osc2 == 0) { //if button pressed to turn on 
             helpMode_osc2 = 1;
-            button_helpMode_osc2.setStyle({
-                fillBg: color("lightgray"),
-            });
+            button_helpMode_osc2.setStyle(helpButtonActiveStyle);
         } else if (button_helpMode_osc2.isPressed && helpMode_osc2 == 1) { //if button pressed to turn off
             helpMode_osc2 = 0;
-            button_helpMode_osc2.setStyle({
-                fillBg: color(130),
-            });
+            button_helpMode_osc2.setStyle(helpButtonInactiveStyle);
         }
 
         //----- draw stuff -----//
