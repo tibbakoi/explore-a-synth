@@ -119,23 +119,7 @@ function soundScene() {
         noFill();
 
         //display osc type label based on which toggle is active
-        if (toggle_Type1.val) {
-            fill("white");
-            noStroke();
-            text('Sine', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        } else if (toggle_Type2.val) {
-            fill("white");
-            noStroke();
-            text('Saw', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        } else if (toggle_Type3.val) {
-            fill("white");
-            noStroke();
-            text('Tri', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        } else if (toggle_Type4.val) {
-            fill("white");
-            noStroke();
-            text('Sqr', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        }
+        changeTypeLabel();
 
         // ----- pop up hover boxes if help mode on -----//
         if (helpMode_osc1) {

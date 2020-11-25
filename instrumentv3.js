@@ -27,6 +27,7 @@ let currentFreqLFO = 110;
 let isOn = 0;
 let isLFOon = 0;
 let currentType = 'sine';
+let ampAnalyser;
 
 //scene manager
 let mgr;
@@ -58,6 +59,8 @@ function setup() {
     fftMain.setInput(oscillatorMain);
     fftCopy.setInput(oscillatorCopy);
     fftLFO.setInput(oscillatorLFO_scaled);
+
+    ampAnalyser = new p5.Amplitude(); //for main output volume
 
     //set up scene manager
     mgr = new SceneManager();
@@ -123,6 +126,7 @@ function drawWaveform(waveform, x1, x2, y1, y2) {
     //y1, y2 = bottom, top
     noFill();
     stroke("white")
+    strokeWeight(1)
     beginShape();
     // vertex(0, height);
     for (let j = 0; j < waveform.length; j++) {
@@ -131,6 +135,27 @@ function drawWaveform(waveform, x1, x2, y1, y2) {
     // vertex(width, height);
     endShape();
     noStroke();
+}
+
+function changeTypeLabel() {
+    textSize(25);
+    if (toggle_Type1.val) {
+        fill("white");
+        noStroke();
+        text('Sine', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
+    } else if (toggle_Type2.val) {
+        fill("white");
+        noStroke();
+        text('Saw', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
+    } else if (toggle_Type3.val) {
+        fill("white");
+        noStroke();
+        text('Tri', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
+    } else if (toggle_Type4.val) {
+        fill("white");
+        noStroke();
+        text('Sqr', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
+    }
 }
 
 // to avoid autoplay

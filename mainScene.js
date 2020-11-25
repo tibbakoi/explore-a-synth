@@ -10,7 +10,6 @@ function mainScene() {
     let loudspeakerWidth = 100;
     let loudspeakerX = (spacingOuter * 3) + (colWidth * 2.25);;
     let loudspeakerY = (spacingOuter * 3) + (rowHeight * 1.5) + textBarHeight;
-    let ampAnalyser;
     let recorder, soundFile;
     let button_Playback, button_Save;
     let envMain;
@@ -53,7 +52,6 @@ function mainScene() {
         button_helpMode_output = createButton("?", spacingOuter * 3 + colWidth * 3 - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
 
         //audio things
-        ampAnalyser = new p5.Amplitude();
         recorder = new p5.SoundRecorder(); //no input specified = records everything happening within the sketch
         soundFile = new p5.SoundFile();
         envMain = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
@@ -164,23 +162,7 @@ function mainScene() {
         noFill();
 
         //display osc type label based on which toggle is active
-        if (toggle_Type1.val) {
-            fill("white");
-            noStroke();
-            text('Sine', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        } else if (toggle_Type2.val) {
-            fill("white");
-            noStroke();
-            text('Saw', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        } else if (toggle_Type3.val) {
-            fill("white");
-            noStroke();
-            text('Tri', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        } else if (toggle_Type4.val) {
-            fill("white");
-            noStroke();
-            text('Sqr', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-        }
+        changeTypeLabel();
 
         // draw active/inactive keyboard
         if (toggle_controlType.val) {
@@ -582,10 +564,12 @@ function mainScene() {
         rect(spacingOuter, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding); //sound top
         rect(spacingOuter, rowHeight + spacingOuter * 3 + textBarHeight, colWidth, rowHeight, rounding, rounding); //sound bottom
 
+        //inputs
         stroke(0, 196, 154)
         rect(spacingOuter * 2 + colWidth, spacingOuter, colWidth, textBarHeight, rounding, rounding)
         rect(spacingOuter * 2 + colWidth, spacingOuter * 3 + rowHeight + textBarHeight, colWidth, rowHeight, rounding, rounding); //keyboard
 
+        //outputs
         stroke(88, 44, 77)
         rect(spacingOuter * 3 + colWidth * 2, spacingOuter, colWidth, textBarHeight, rounding, rounding)
 
@@ -594,16 +578,12 @@ function mainScene() {
         rect(colWidth * 2 + spacingOuter * 3, rowHeight + spacingOuter * 3 + textBarHeight, colWidth / 2 - spacingInner, rowHeight, rounding, rounding); //bottom right
         rect(colWidth * 2.5 + spacingOuter * 3 + spacingInner, rowHeight + spacingOuter * 3 + textBarHeight, colWidth / 2 - spacingInner, rowHeight, rounding, rounding); //bottom right
 
-
-        // perhaps some outer boxes to indicate different sections?
-        // stroke("purple")
-        // rect(spacingOuter - 2, spacingOuter - 2, colWidth + 4, rowHeight * 2 + 4 + spacingOuter, rounding, rounding)
     }
 
     function drawLoudspeaker(x, y) {
-        strokeWeight(1)
-        stroke(0)
-            //centre of loudspeaker = x, y
+        strokeWeight(1);
+        stroke(0);
+        //centre of loudspeaker = x, y
         var ampLevel = ampAnalyser.getLevel(); //amplitude of output - not value on a UI element
 
         //change the value based on the master output level every 3 frames, if the synth is turned on
