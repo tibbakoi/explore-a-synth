@@ -35,6 +35,13 @@ function mainScene() {
         toggle_Type3 = createCheckbox("Tri", spacingOuter + spacingInner * 3 + buttonHeight * 2, spacingOuter * 2 + spacingInner * 2 + buttonHeight + textBarHeight, buttonHeight, buttonHeight, 0);
         toggle_Type4 = createCheckbox("Squ", spacingOuter + spacingInner * 4 + buttonHeight * 3, spacingOuter * 2 + spacingInner * 2 + buttonHeight + textBarHeight, buttonHeight, buttonHeight, 0);
 
+        toggle_mute = createCheckbox("Mute", spacingOuter + colWidth - spacingInner - 110, spacingOuter * 2 + spacingInner + textBarHeight, buttonHeight, buttonHeight);
+        toggle_mute.setStyle({
+            fillCheck: color("red"),
+            fillCheckHover: color("red"),
+            fillCheckActive: color("red"),
+        }); //all versions of the X are red
+
         //X-Y pad
         XY_freqAmp = createSlider2d("freqAmp", colWidth + spacingOuter * 2, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, 0, 1, 1, maxMIDIval);
         XY_freqAmp.setStyle({
@@ -141,6 +148,7 @@ function mainScene() {
         textSize(25);
         textAlign(LEFT, CENTER);
         text('Sound', spacingOuter + spacingInner * 2 + 50, spacingOuter * 2 + textBarHeight + spacingInner + 25);
+        text('Mute', spacingOuter + colWidth - spacingInner - 55, spacingOuter * 2 + textBarHeight + spacingInner + 25);
         text('Keyboard', spacingOuter * 2 + spacingInner * 2 + colWidth + 50, spacingOuter * 3 + textBarHeight + spacingInner + rowHeight + 25);
         textAlign(CENTER, CENTER);
         text('Record', spacingOuter * 3 + spacingInner * 2 + colWidth * 2.75, spacingOuter * 3 + textBarHeight + spacingInner + rowHeight + 15);
@@ -347,6 +355,15 @@ function mainScene() {
             oscillatorMain.stop();
             oscillatorCopy.stop();
             isOn = 0;
+        }
+
+        // mute but everything continues happening
+        if (toggle_mute.val) {
+            p5.soundOut.output.gain.value = 0; //sets the output of the gain node to 0 so everything continues happening but no sound plays
+            isMute = 1;
+        } else {
+            p5.soundOut.output.gain.value = 1; //resets the output value of the gain node
+            isMute = 0;
         }
 
         // toggle between types - mutually exclusive

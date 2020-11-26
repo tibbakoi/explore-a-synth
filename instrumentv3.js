@@ -14,6 +14,7 @@ let toggle_controlType; //enable playing by keyboard
 let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 //osc type
 let toggle_record; //record
 let XY_freqAmp; //x-y control
+let toggle_mute; //overall mute control
 
 //audio stuff
 let oscillatorMain, oscillatorCopy, oscillatorLFO, oscillatorLFO_scaled; //oscCopy = duplicate of oscMain for the purposes of plotting before/after modulation
@@ -29,6 +30,7 @@ let isLFOon = 0;
 let currentType = 'sine';
 let ampAnalyser;
 let maxMIDIval = 124;
+let isMute = 0;
 
 //scene manager
 let mgr;
@@ -91,6 +93,10 @@ function mouseReleased() {
 function setToggleValues() {
     if (isOn) {
         toggle_OnOff.val = 1;
+    }
+
+    if (isMute) {
+        toggle_mute.val = 1;
     }
 
     switch (currentType) {
