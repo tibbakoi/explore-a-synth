@@ -272,6 +272,7 @@ function soundScene() {
 
         // toggle between types - mutually exclusive
         if (toggle_Type1.isPressed) {
+            if (!toggle_Type1.val) { toggle_Type1.val = true; } //can't turn a toggle off and leave none active
             toggle_Type2.val = false;
             toggle_Type3.val = false;
             toggle_Type4.val = false;
@@ -279,6 +280,7 @@ function soundScene() {
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
         } else if (toggle_Type2.isPressed) {
+            if (!toggle_Type2.val) { toggle_Type2.val = true; } //can't turn a toggle off and leave none active
             toggle_Type1.val = false;
             toggle_Type3.val = false;
             toggle_Type4.val = false;
@@ -286,6 +288,7 @@ function soundScene() {
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
         } else if (toggle_Type3.isPressed) {
+            if (!toggle_Type3.val) { toggle_Type3.val = true; } //can't turn a toggle off and leave none active
             toggle_Type1.val = false;
             toggle_Type2.val = false;
             toggle_Type4.val = false;
@@ -293,6 +296,7 @@ function soundScene() {
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
         } else if (toggle_Type4.isPressed) {
+            if (!toggle_Type4.val) { toggle_Type4.val = true; } //can't turn a toggle off and leave none active
             toggle_Type1.val = false;
             toggle_Type2.val = false;
             toggle_Type3.val = false;
