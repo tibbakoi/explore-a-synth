@@ -33,6 +33,7 @@ let ampAnalyser;
 let maxMIDIval = 124;
 let isMute = 0;
 let eqGains = [0, 0, 0];
+let eqFreqs = [250, 3000, 6000];
 
 //scene manager
 let mgr;
@@ -60,9 +61,11 @@ function setup() {
     //filtering setup
     eq = new p5.EQ(3); //init with 3 bands
     eq.process(oscillatorMain); //the other oscillators are used for modulation or for plotting purposes only, so not filtered
-    //all start at 0
+    //all start at gain = 0
     for (let i = 0; i < 3; i++) {
         eq.bands[i].gain(eqGains[i]);
+        eq.bands[i].freq(eqFreqs[i]);
+        eq.bands[i].res(1);
     }
 
     //analyser setup

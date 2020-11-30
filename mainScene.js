@@ -55,9 +55,9 @@ function mainScene() {
         //eq sliders
         var sliderWidth = floor((colWidth - spacingInner * 4) / 3);
         var sliderHeight = rowHeight - buttonHeight - spacingInner * 2;
-        slider_eq0 = createSliderV("eq1", spacingOuter + spacingInner, spacingOuter * 3 + textBarHeight + rowHeight + spacingInner + buttonHeight, sliderWidth, sliderHeight, -20, 20);
-        slider_eq1 = createSliderV("eq2", spacingOuter + spacingInner * 2 + sliderWidth, spacingOuter * 3 + textBarHeight + rowHeight + spacingInner + buttonHeight, sliderWidth, sliderHeight, -20, 20);
-        slider_eq2 = createSliderV("eq3", spacingOuter + spacingInner * 3 + sliderWidth * 2, spacingOuter * 3 + textBarHeight + rowHeight + spacingInner + buttonHeight, sliderWidth, sliderHeight, -20, 20);
+        slider_eq0 = createSliderV("low", spacingOuter + spacingInner, spacingOuter * 3 + textBarHeight + rowHeight + spacingInner + buttonHeight, sliderWidth, sliderHeight, -20, 20);
+        slider_eq1 = createSliderV("mid", spacingOuter + spacingInner * 2 + sliderWidth, spacingOuter * 3 + textBarHeight + rowHeight + spacingInner + buttonHeight, sliderWidth, sliderHeight, -20, 20);
+        slider_eq2 = createSliderV("high", spacingOuter + spacingInner * 3 + sliderWidth * 2, spacingOuter * 3 + textBarHeight + rowHeight + spacingInner + buttonHeight, sliderWidth, sliderHeight, -20, 20);
         button_eqReset = createButton("Reset", spacingOuter + spacingInner, spacingOuter * 3 + textBarHeight + spacingInner + rowHeight, 45, 45);
         button_eqReset.setStyle({
             textSize: 15,
@@ -741,13 +741,13 @@ function mainScene() {
         for (let i = 0; i < 8; i++) {
             rect(spacingOuter * 2 + colWidth + spacingInner + (i * keyWidth), height - spacingOuter - keyHeight * 2, keyWidth, keyHeight * 1.75);
         }
-        //black keys
+        //black keys - slightly thinner for visual clarity
         fill(0, 0, 0, transparencyValue);
         for (let i = 0; i < 2; i++) {
-            rect(spacingOuter * 2 + colWidth + spacingInner + keyWidth / 2 + (i * keyWidth), height - spacingOuter - keyHeight * 2, keyWidth, keyHeight);
+            rect(spacingOuter * 2 + colWidth + spacingInner + keyWidth / 2 + (i * keyWidth) + 4, height - spacingOuter - keyHeight * 2, keyWidth - 8, keyHeight);
         }
         for (let i = 3; i < 6; i++) {
-            rect(spacingOuter * 2 + colWidth + spacingInner + keyWidth / 2 + (i * keyWidth), height - spacingOuter - keyHeight * 2, keyWidth, keyHeight);
+            rect(spacingOuter * 2 + colWidth + spacingInner + keyWidth / 2 + (i * keyWidth) + 4, height - spacingOuter - keyHeight * 2, keyWidth - 8, keyHeight);
         }
         //octave boxes and numbers
         for (let i = 0; i < 8; i++) {
