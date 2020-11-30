@@ -3,6 +3,8 @@ function mainScene() {
     let button_loudspeakerMore, button_soundMore;
     let waveform = 0;
     let slider_gain;
+    let slider_eq0, slider_eq1, slider_eq2;
+    let button_eqReset;
     let button_helpMode_sound, button_helpMode_input, button_helpMode_output;
     let helpMode_sound = 0;
     let helpMode_input = 0;
@@ -48,6 +50,17 @@ function mainScene() {
             strokeBg: color(0, 196, 154),
             strokeBgHover: color(0, 196, 154),
             strokeBgActive: color(0, 196, 154)
+        });
+
+        //eq sliders
+        var sliderWidth = floor((colWidth - spacingInner * 4) / 3);
+        var sliderHeight = rowHeight - buttonHeight - spacingInner * 2;
+        slider_eq0 = createSliderV("eq1", spacingOuter + spacingInner, spacingOuter * 3 + textBarHeight + rowHeight + spacingInner + buttonHeight, sliderWidth, sliderHeight, -20, 20);
+        slider_eq1 = createSliderV("eq2", spacingOuter + spacingInner * 2 + sliderWidth, spacingOuter * 3 + textBarHeight + rowHeight + spacingInner + buttonHeight, sliderWidth, sliderHeight, -20, 20);
+        slider_eq2 = createSliderV("eq3", spacingOuter + spacingInner * 3 + sliderWidth * 2, spacingOuter * 3 + textBarHeight + rowHeight + spacingInner + buttonHeight, sliderWidth, sliderHeight, -20, 20);
+        button_eqReset = createButton("Reset", spacingOuter + spacingInner, spacingOuter * 3 + textBarHeight + spacingInner + rowHeight, 45, 45);
+        button_eqReset.setStyle({
+            textSize: 15,
         });
 
         //keyboard toggles
@@ -97,6 +110,13 @@ function mainScene() {
         //set toggle values based on state of oscillators
         setToggleValues();
 
+        //set EQ gains & slider gains
+        for (let i = 0; i < 3; i++) {
+            eq.bands[i].gain(eqGains[i]);
+        }
+        slider_eq0.val = eqGains[0];
+        slider_eq1.val = eqGains[1];
+        slider_eq2.val = eqGains[2];
     };
 
     this.enter = function() {
@@ -151,11 +171,15 @@ function mainScene() {
         text('Mute', spacingOuter + colWidth - spacingInner - 55, spacingOuter * 2 + textBarHeight + spacingInner + 25);
         text('Keyboard', spacingOuter * 2 + spacingInner * 2 + colWidth + 50, spacingOuter * 3 + textBarHeight + spacingInner + rowHeight + 25);
         textAlign(CENTER, CENTER);
-        text('Record', spacingOuter * 3 + spacingInner * 2 + colWidth * 2.75, spacingOuter * 3 + textBarHeight + spacingInner + rowHeight + 15);
+        text('Filtering', spacingOuter + spacingInner + colWidth / 2, spacingOuter * 3 + spacingInner + textBarHeight + rowHeight + 20)
+        text('Record', spacingOuter * 3 + spacingInner + colWidth * 2.75, spacingOuter * 3 + textBarHeight + spacingInner + rowHeight + 15);
         textAlign(LEFT, CENTER);
-        text('Filtering and FX...?!', spacingOuter + spacingInner, spacingOuter * 2 + textBarHeight + rowHeight * 1.5);
         textSize(15)
         text("Vol: " + round(slider_gain.val, 1), spacingOuter + colWidth - spacingInner * 2 - 42, spacingOuter * 2 + textBarHeight + rowHeight - 65)
+        text("Low", spacingOuter + spacingInner + 30, spacingOuter * 3 + spacingInner + textBarHeight + rowHeight + 65);
+        text("Mid", spacingOuter + spacingInner + 130, spacingOuter * 3 + spacingInner + textBarHeight + rowHeight + 65);
+        text("High", spacingOuter + spacingInner + 230, spacingOuter * 3 + spacingInner + textBarHeight + rowHeight + 65);
+
         textSize(25)
 
         //explainer boxes
@@ -230,14 +254,66 @@ function mainScene() {
                 rectMode(CORNER)
                 textAlign(LEFT, CENTER)
             }
-            if (mouseY > spacingOuter * 3 + textBarHeight + rowHeight && mouseX < spacingOuter + colWidth) { // placeholder for filtering/FX box
+            if (toggle_mute._hover) {
                 fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
-                rect(spacingOuter + colWidth / 2, spacingOuter + textBarHeight + rowHeight * 1.5, 150, 90, 10, 10);
+                rect(150, 150, 150, 90, 10, 10);
                 stroke("black")
                 fill(34, 43, 48)
-                text("Placeholder for things to come....", spacingOuter + colWidth / 2, spacingOuter + textBarHeight + rowHeight * 1.5, 150, 150)
+                text("Mute everything", 150, 150, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (button_eqReset._hover) {
+                fill(184, 216, 216);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(150, 350, 150, 90, 10, 10);
+                stroke("black")
+                fill(34, 43, 48)
+                text("Set filtering sliders to 0", 150, 350, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (slider_eq0._hover) {
+                fill(184, 216, 216);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(150, 350, 150, 90, 10, 10);
+                stroke("black")
+                fill(34, 43, 48)
+                text("Reduce / increase low frequencies", 150, 350, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (slider_eq1._hover) {
+                fill(184, 216, 216);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(150, 350, 150, 90, 10, 10);
+                stroke("black")
+                fill(34, 43, 48)
+                text("Reduce / increase mid frequencies", 150, 350, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (slider_eq2._hover) {
+                fill(184, 216, 216);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(150, 350, 155, 90, 10, 10);
+                stroke("black")
+                fill(34, 43, 48)
+                text("Reduce / increase high frequencies", 150, 350, 160, 150)
                 noFill();
                 noStroke();
                 rectMode(CORNER)
@@ -399,6 +475,31 @@ function mainScene() {
             currentType = 'square';
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
+        }
+
+        //filtering
+        if (slider_eq0.isChanged) {
+            eqGains[0] = slider_eq0.val;
+            eq.bands[0].gain(eqGains[0]);
+        }
+        if (slider_eq1.isChanged) {
+            eqGains[1] = slider_eq1.val;
+            eq.bands[1].gain(eqGains[1]);
+        }
+        if (slider_eq2.isChanged) {
+            eqGains[2] = slider_eq2.val;
+            eq.bands[2].gain(eqGains[2]);
+        }
+
+        if (button_eqReset.isPressed) {
+            //reset sliders
+            slider_eq0.val = 0;
+            slider_eq1.val = 0;
+            slider_eq2.val = 0;
+            //reset gain values - needs doing because sliders are not changed by user, therefore does not trigger change
+            for (let i = 0; i < 3; i++) {
+                eq.bands[i].gain(0);
+            }
         }
 
         //X-Y frequency/amplitude control - only when keyboard isn't enabled - otherwise too many amplitude values at once

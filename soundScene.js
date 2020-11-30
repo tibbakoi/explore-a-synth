@@ -189,6 +189,19 @@ function soundScene() {
                 rectMode(CORNER)
                 textAlign(LEFT, CENTER)
             }
+            if (toggle_mute._hover) {
+                fill(184, 216, 216);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(150, 150, 150, 90, 10, 10);
+                stroke("black")
+                fill(34, 43, 48)
+                text("Mute everything", 150, 150, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
         }
         if (helpMode_osc2) {
             if (toggle_OnOff2._hover) {

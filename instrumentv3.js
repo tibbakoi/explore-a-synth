@@ -19,6 +19,7 @@ let toggle_mute; //overall mute control
 //audio stuff
 let oscillatorMain, oscillatorCopy, oscillatorLFO, oscillatorLFO_scaled; //oscCopy = duplicate of oscMain for the purposes of plotting before/after modulation
 let fftMain, fftCopy, fftLFO;
+let eq;
 let currentOctave = 60; //3rd octave
 let currentNote = 0; //C
 let currentAmpMain = 0; //main volume doesnt go to zero
@@ -31,6 +32,7 @@ let currentType = 'sine';
 let ampAnalyser;
 let maxMIDIval = 124;
 let isMute = 0;
+let eqGains = [0, 0, 0];
 
 //scene manager
 let mgr;
@@ -43,7 +45,7 @@ function setup() {
     oscillatorMain = new p5.Oscillator('sine'); //main output
     oscillatorCopy = new p5.Oscillator('sine'); //for plotting carrier when modulated
     oscillatorLFO = new p5.Oscillator('sine'); //for modulation
-    oscillatorLFO_scaled = new p5.Oscillator('sine'); //for plotting scaled modulation
+    oscillatorLFO_scaled = new p5.Oscillator('sine'); //for plotting scaled modulation - otherwise the visual plot clips
 
     oscillatorCopy.disconnect(); //disconnect from audio output so can plot signal but have no sound
     oscillatorLFO.disconnect(); //doesn't need to be connected to audio output if used for modulation
@@ -55,11 +57,20 @@ function setup() {
     oscillatorLFO.amp(currentAmpLFO);
     oscillatorLFO_scaled.amp(currentAmpLFO / 5000); //is scale of slider
 
-    fftMain = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
-    fftCopy = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
-    fftLFO = new p5.FFT(0.8, 256); //analyses all audio in sketch if no input set
+    //filtering setup
+    eq = new p5.EQ(3); //init with 3 bands
+    eq.process(oscillatorMain); //the other oscillators are used for modulation or for plotting purposes only, so not filtered
+    //all start at 0
+    for (let i = 0; i < 3; i++) {
+        eq.bands[i].gain(eqGains[i]);
+    }
 
-    fftMain.setInput(oscillatorMain);
+    //analyser setup
+    fftMain = new p5.FFT(0.8, 256);
+    fftCopy = new p5.FFT(0.8, 256);
+    fftLFO = new p5.FFT(0.8, 256);
+
+    fftMain.setInput(eq);
     fftCopy.setInput(oscillatorCopy);
     fftLFO.setInput(oscillatorLFO_scaled);
 
@@ -70,7 +81,6 @@ function setup() {
     mgr.addScene(mainScene);
     mgr.addScene(soundScene);
     mgr.addScene(loudspeakerScene);
-
     mgr.showScene(mainScene); //first scene to load
 
 }
