@@ -266,6 +266,32 @@ function mainScene() {
                 rectMode(CORNER)
                 textAlign(LEFT, CENTER)
             }
+            if (button_SettingsSave._hover) {
+                fill(184, 216, 216);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(150, 150, 150, 90, 10, 10);
+                stroke("black")
+                fill(34, 43, 48)
+                text("Save current values", 150, 150, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
+            if (button_SettingsLoad._hover) {
+                fill(184, 216, 216);
+                textAlign(CENTER, CENTER)
+                rectMode(CENTER)
+                rect(150, 150, 150, 90, 10, 10);
+                stroke("black")
+                fill(34, 43, 48)
+                text("Load values from file", 150, 150, 150, 150)
+                noFill();
+                noStroke();
+                rectMode(CORNER)
+                textAlign(LEFT, CENTER)
+            }
             if (button_eqReset._hover) {
                 fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
