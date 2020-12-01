@@ -565,6 +565,12 @@ function mainScene() {
             envMain.mult(slider_gain.val);
         }
 
+        //if turning keyboard mode on , set gain to 0 to avoid constant droning
+        if (toggle_controlType.isPressed && toggle_controlType.val) {
+            oscillatorMain.amp(0);
+            oscillatorCopy.amp(0);
+        }
+
         //if turning keyboard mode off, set gain back to current gain value
         if (toggle_controlType.isPressed && !toggle_controlType.val) {
             oscillatorMain.amp(currentAmpMain);
