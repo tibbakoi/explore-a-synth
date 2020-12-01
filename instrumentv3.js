@@ -22,7 +22,7 @@ let fftMain, fftCopy, fftLFO;
 let eq;
 let currentOctave = 60; //3rd octave
 let currentNote = 0; //C
-let currentAmpMain = 0; //main volume doesnt go to zero
+let currentAmpMain = 0;
 let currentAmpLFO = 0;
 let currentFreqMain = 440;
 let currentFreqLFO = 110;
@@ -103,6 +103,7 @@ function mouseReleased() {
     mgr.handleEvent("mouseReleased");
 }
 
+//update UI elements based on current status
 function setToggleValues() {
     if (isOn) {
         toggle_OnOff.val = 1;
@@ -137,7 +138,6 @@ function setToggleValues() {
             toggle_Type3.val = false;
             toggle_Type4.val = true;
             break;
-
     }
 }
 
@@ -175,6 +175,29 @@ function changeTypeLabel() {
         fill("white");
         noStroke();
         text('Sqr', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
+    }
+}
+
+//update oscillator parameters based on current status
+function setOscillatorValues() {
+    oscillatorMain.freq(currentFreqMain);
+    oscillatorMain.amp(currentAmpMain, 0.01);
+    oscillatorMain.setType(currentType);
+
+    oscillatorCopy.freq(currentFreqMain); //copy frequency and amplitude across
+    oscillatorCopy.amp(currentAmpMain, 0.01); //NB - is disconnected so not actual output
+    oscillatorCopy.setType(currentType);
+
+    oscillatorLFO.freq(currentFreqLFO);
+    oscillatorLFO.amp(currentAmpLFO, 0.01);
+    oscillatorLFO_scaled.freq(currentFreqLFO);
+    oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
+
+    //if LFO has been turned on, also set these
+    if (isLFOon) {
+        oscillatorLFO.start();
+        oscillatorLFO_scaled.start();
+        oscillatorMain.freq(oscillatorLFO); //modulate the frequency
     }
 }
 

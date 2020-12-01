@@ -50,8 +50,9 @@ function soundScene() {
         //back to main GUI
         button_mainGui = createButton("x", width - spacingOuter - spacingInner - 25, spacingOuter + spacingInner, 25, 25);
 
-        //set toggle values based on state of oscillators
+        //set status of UI elements and oscillators
         setToggleValues();
+        setOscillatorValues();
 
         if (isLFOon) {
             toggle_OnOff2.val = true;

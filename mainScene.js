@@ -13,8 +13,10 @@ function mainScene() {
     let loudspeakerX = (spacingOuter * 3) + (colWidth * 2.25);;
     let loudspeakerY = (spacingOuter * 3) + (rowHeight * 1.5) + textBarHeight;
     let recorder, soundFile;
-    let button_Playback, button_Save;
+    let button_AudioPlayback, button_AudioSave;
+    let button_SettingsSave, button_SettingsLoad;
     let envMain;
+    let fileInput;
 
     //styling for help buttons
     let helpButtonActiveStyle = {
@@ -68,8 +70,15 @@ function mainScene() {
 
         //record UI
         toggle_record = createCheckbox("recording", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight * 3 - spacingOuter - spacingInner * 3, buttonHeight, buttonHeight);
-        button_Playback = createButton("Play", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight * 2 - spacingOuter - spacingInner * 2, colWidth / 2 - spacingOuter - spacingInner, buttonHeight);
-        button_Save = createButton("Save", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight - spacingOuter - spacingInner, colWidth / 2 - spacingOuter - spacingInner, buttonHeight);
+        button_AudioPlayback = createButton("Play", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight * 2 - spacingOuter - spacingInner * 2, colWidth / 2 - spacingOuter - spacingInner, buttonHeight);
+        button_AudioSave = createButton("Save", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight - spacingOuter - spacingInner, colWidth / 2 - spacingOuter - spacingInner, buttonHeight);
+
+        //save/load UI
+        button_SettingsSave = createButton("Save", spacingOuter + spacingInner, spacingOuter * 2 + textBarHeight + rowHeight - spacingInner - 26, 55, 26);
+        button_SettingsLoad = createButton("Load", spacingOuter + spacingInner * 2 + 56, spacingOuter * 2 + textBarHeight + rowHeight - spacingInner - 26, 55, 26);
+
+        //set up file selector
+        setUpFileSelector();
 
         // scene manager switch buttons
         button_loudspeakerMore = createButton("More", spacingOuter * 3 + colWidth * 2.5 - spacingInner * 2 - 55, height - spacingOuter - spacingInner - 26, 55, 26);
@@ -88,26 +97,16 @@ function mainScene() {
         //master volume slider - set to currentAmpMain
         slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
 
-        //starting parameters - looks recursive but means everything has the correct values on load
+        noFill();
+        stroke('white');
+
+        //starting parameters
         XY_freqAmp.valX = 1; //amplitude at 1
         XY_freqAmp.valY = freqToMidi(currentFreqMain);
         slider_gain.val = currentAmpMain;
 
-        oscillatorMain.freq(currentFreqMain);
-        oscillatorMain.amp(currentAmpMain, 0.01);
-
-        oscillatorCopy.freq(currentFreqMain); //copy frequency and amplitude across
-        oscillatorCopy.amp(currentAmpMain, 0.01); //NB - is disconnected so not actual output
-
-        oscillatorLFO.freq(currentFreqLFO);
-        oscillatorLFO.amp(currentAmpLFO, 0.01);
-        oscillatorLFO_scaled.freq(currentFreqLFO);
-        oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
-
-        noFill();
-        stroke('white');
-
-        //set toggle values based on state of oscillators
+        //set status of UI elements and oscillators
+        setOscillatorValues();
         setToggleValues();
 
         //set EQ gains & slider gains
@@ -378,7 +377,7 @@ function mainScene() {
                 rectMode(CORNER)
                 textAlign(LEFT, CENTER)
             }
-            if (button_Playback._hover) {
+            if (button_AudioPlayback._hover) {
                 fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
@@ -391,7 +390,7 @@ function mainScene() {
                 rectMode(CORNER)
                 textAlign(LEFT, CENTER)
             }
-            if (button_Save._hover) {
+            if (button_AudioSave._hover) {
                 fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
@@ -500,6 +499,20 @@ function mainScene() {
             for (let i = 0; i < 3; i++) {
                 eq.bands[i].gain(0);
             }
+        }
+
+        //save synth settings to a text file
+        if (button_SettingsSave.isPressed) {
+            //create list from variables
+            let settingsList = [str(currentType), str(currentFreqMain), str(currentAmpMain), str(isLFOon), str(currentFreqLFO), str(currentAmpLFO), eqGains.toString()];
+            //save to text file
+            saveStrings(settingsList, 'synthSettings.txt');
+        }
+
+        if (button_SettingsLoad.isPressed) {
+            //simulate the click on the file selector
+            fileInput.click();
+            //change button style back to 'non clicked'
         }
 
         //X-Y frequency/amplitude control - only when keyboard isn't enabled - otherwise too many amplitude values at once
@@ -622,23 +635,23 @@ function mainScene() {
         }
 
         // play recorded file, if exists
-        if (button_Playback.isPressed && soundFile.duration() > 0) { //make sure sound file exists...
+        if (button_AudioPlayback.isPressed && soundFile.duration() > 0) { //make sure sound file exists...
             soundFile.play();
         }
 
         //turn play button green when sound file is playing
         if (soundFile.isPlaying()) {
-            button_Playback.setStyle({
+            button_AudioPlayback.setStyle({
                 fillBg: color("green"),
             });
         } else {
-            button_Playback.setStyle({
+            button_AudioPlayback.setStyle({
                 fillBg: color(130),
             });
         }
 
         // save recorded file, if exists
-        if (button_Save.isPressed && soundFile.duration() > 0) { //make sure sound file exists...
+        if (button_AudioSave.isPressed && soundFile.duration() > 0) { //make sure sound file exists...
             save(soundFile, 'MySoundFile.wav');
         }
 
@@ -651,6 +664,70 @@ function mainScene() {
             mgr.showScene(loudspeakerScene);
         }
     };
+
+    function setUpFileSelector() {
+        //from https://stackoverflow.com/a/40971885
+        fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        //do stuff with file once selected
+        fileInput.onchange = e => {
+            var file = e.target.files[0]; //get file reference
+            var reader = new FileReader(); //set up file reader to get contents of file
+            reader.readAsText(file, 'UTF-8'); //read file
+
+            //what to do when have read file
+            reader.onload = readerEvent => {
+                //stop oscillators so don't get multiple sounds at once
+                oscillatorMain.stop();
+                oscillatorCopy.stop();
+                oscillatorLFO.stop();
+
+                var content = readerEvent.target.result; //get content
+
+                //assign content to variables in order: type, freqMain, ampMain, isLFOon, freqLFO, ampLFO, eqGains
+
+                //waveform type
+                var n = content.search("\n"); //find the carriage return
+                currentType = content.slice(0, n); //assign the slice to currentType
+                var contentShortened = content.slice(n + 1, content.length); //make shortened version for next variable
+
+                //freqMain
+                n = contentShortened.search("\n"); //find CR
+                currentFreqMain = parseFloat(contentShortened.slice(0, n));
+                contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+
+                //ampMain
+                n = contentShortened.search("\n"); //find CR
+                currentAmpMain = parseFloat(contentShortened.slice(0, n));
+                contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+
+                //isLFOon
+                n = contentShortened.search("\n"); //find CR
+                isLFOon = parseFloat(contentShortened.slice(0, n));
+                contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+
+                //freqLFO
+                n = contentShortened.search("\n"); //find CR
+                currentFreqLFO = parseFloat(contentShortened.slice(0, n));
+                contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+
+                //ampLFO
+                n = contentShortened.search("\n"); //find CR
+                currentAmpLFO = parseFloat(contentShortened.slice(0, n));
+                contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+
+                //eqGains
+                n = contentShortened.search("\n"); //find CR
+                eqString = contentShortened.slice(0, n).split(',');
+                eqGains[0] = parseFloat(eqString[0]);
+                eqGains[1] = parseFloat(eqString[1]);
+                eqGains[2] = parseFloat(eqString[2]);
+
+                //reset UI using the new values
+                this.setup();
+            };
+        };
+    }
 
     //----- musical functions -----//
     function playNote() {

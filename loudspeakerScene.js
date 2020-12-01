@@ -53,14 +53,14 @@ function loudspeakerScene() {
         // back to main GUI
         button_mainGui2 = createButton("x", width - spacingOuter * 3 - spacingInner * 2, spacingOuter + spacingInner, 25, 25);
 
-        //set toggle values based on state of oscillators
+        //set status of UI elements and oscillators
         setToggleValues();
+        setOscillatorValues();
 
-        //set slider values, adjust loudspeaker based on frequency value
+        //set other slider values, adjust loudspeaker based on frequency value
         slider_gain.val = currentAmpMain;
         slider_freqCopy.val = freqToMidi(currentFreqMain);
         speedAdjustment = 60 - round(map(slider_freqCopy.val, 1, maxMIDIval, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
-
 
     };
     this.enter = function() {
