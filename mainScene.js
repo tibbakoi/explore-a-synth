@@ -18,6 +18,9 @@ function mainScene() {
     let envMain;
     let fileInput;
 
+    //temp for holding values when loading new ones
+    let currentType_temp, currentFreqMain_temp, currentAmpMain_temp, isLFOon_temp, currentFreqLFO_temp, currentAmpLFO_temp, eqGains_temp;
+
     //styling for help buttons
     let helpButtonActiveStyle = {
         fillBg: color("white"),
@@ -78,7 +81,7 @@ function mainScene() {
         button_SettingsLoad = createButton("Load", spacingOuter + spacingInner * 2 + 56, spacingOuter * 2 + textBarHeight + rowHeight - spacingInner - 26, 55, 26);
 
         //set up file selector
-        setUpFileSelector();
+        setUpFileReader();
 
         // scene manager switch buttons
         button_loudspeakerMore = createButton("More", spacingOuter * 3 + colWidth * 2.5 - spacingInner * 2 - 55, height - spacingOuter - spacingInner - 26, 55, 26);
@@ -100,22 +103,10 @@ function mainScene() {
         noFill();
         stroke('white');
 
-        //starting parameters
-        XY_freqAmp.valX = 1; //amplitude at 1
-        XY_freqAmp.valY = freqToMidi(currentFreqMain);
-        slider_gain.val = currentAmpMain;
-
         //set status of UI elements and oscillators
         setOscillatorValues();
-        setToggleValues();
+        setUIValues();
 
-        //set EQ gains & slider gains
-        for (let i = 0; i < 3; i++) {
-            eq.bands[i].gain(eqGains[i]);
-        }
-        slider_eq0.val = eqGains[0];
-        slider_eq1.val = eqGains[1];
-        slider_eq2.val = eqGains[2];
     };
 
     this.enter = function() {
@@ -536,9 +527,17 @@ function mainScene() {
         }
 
         if (button_SettingsLoad.isPressed) {
-            //simulate the click on the file selector
+            //store current values in case load fails
+            currentType_temp = currentType;
+            currentFreqMain_temp = currentFreqMain;
+            currentAmpMain_temp = currentAmpMain;
+            isLFOon_temp = isLFOon;
+            currentFreqLFO_temp = currentFreqLFO;
+            currentAmpLFO_temp = currentAmpLFO;
+            eqGains_temp = eqGains;
+
+            //simulate the click to open the file selector
             fileInput.click();
-            //change button style back to 'non clicked'
         }
 
         //X-Y frequency/amplitude control - only when keyboard isn't enabled - otherwise too many amplitude values at once
@@ -697,7 +696,8 @@ function mainScene() {
         }
     };
 
-    function setUpFileSelector() {
+    function setUpFileReader() {
+
         //from https://stackoverflow.com/a/40971885
         fileInput = document.createElement('input');
         fileInput.type = 'file';
@@ -714,49 +714,110 @@ function mainScene() {
                 oscillatorCopy.stop();
                 oscillatorLFO.stop();
 
-                var content = readerEvent.target.result; //get content
+                //get content of file
+                var content = readerEvent.target.result;
 
                 //assign content to variables in order: type, freqMain, ampMain, isLFOon, freqLFO, ampLFO, eqGains
+                //determine if values are valid - throw error if any are incorrect, assign to correct variables if correct
+                try {
+                    //waveform type
+                    var n = content.search("\n"); //find the carriage return
+                    var currentType_read = content.slice(0, n); //assign the slice to currentType
+                    var contentShortened = content.slice(n + 1, content.length); //make shortened version for next variable
+                    //throw error if wrong, else assign to variable
+                    if (!(currentType_read == 'sine' || currentType_read == 'triangle' || currentType_read == 'sawtooth' || currentType_read == 'square')) {
+                        throw new Error('Invalid oscillator type');
+                    } else {
+                        currentType = currentType_read;
+                    }
 
-                //waveform type
-                var n = content.search("\n"); //find the carriage return
-                currentType = content.slice(0, n); //assign the slice to currentType
-                var contentShortened = content.slice(n + 1, content.length); //make shortened version for next variable
+                    //freqMain
+                    n = contentShortened.search("\n"); //find CR
+                    var currentFreqMain_read = parseFloat(contentShortened.slice(0, n));
+                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    //throw error if wrong
+                    if (isNaN(currentFreqMain_read) || currentFreqMain_read > midiToFreq(maxMIDIval) || currentFreqMain_read < midiToFreq(1)) {
+                        throw new Error('Invalid frequency value');
+                    } else {
+                        currentFreqMain = currentFreqMain_read;
+                    }
 
-                //freqMain
-                n = contentShortened.search("\n"); //find CR
-                currentFreqMain = parseFloat(contentShortened.slice(0, n));
-                contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    //ampMain
+                    n = contentShortened.search("\n"); //find CR
+                    var currentAmpMain_read = parseFloat(contentShortened.slice(0, n));
+                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    //throw error if wrong
+                    if (isNaN(currentAmpMain_read) || currentAmpMain_read > 1 || currentFreqMain < 0) {
+                        throw new Error('Invalid amplitude value');
+                    } else {
+                        currentAmpMain = currentAmpMain_read;
+                    }
 
-                //ampMain
-                n = contentShortened.search("\n"); //find CR
-                currentAmpMain = parseFloat(contentShortened.slice(0, n));
-                contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    //isLFOon
+                    n = contentShortened.search("\n"); //find CR
+                    var isLFOon_read = parseFloat(contentShortened.slice(0, n));
+                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    //throw error if wrong
+                    if (isNaN(isLFOon_read) || !(isLFOon_read == 1 || isLFOon == 0)) {
+                        throw new Error('Invalid LFO flag value');
+                    } else {
+                        isLFOon = isLFOon_read;
+                    }
 
-                //isLFOon
-                n = contentShortened.search("\n"); //find CR
-                isLFOon = parseFloat(contentShortened.slice(0, n));
-                contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    //freqLFO
+                    n = contentShortened.search("\n"); //find CR
+                    var currentFreqLFO_read = parseFloat(contentShortened.slice(0, n));
+                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    //throw error if wrong
+                    if (isNaN(currentFreqLFO_read) || currentFreqLFO_read > midiToFreq(120) || currentFreqLFO_read < midiToFreq(1)) {
+                        throw new Error('Invalid LFO frequency value');
+                    } else {
+                        currentFreqLFO = currentFreqLFO_read;
+                    }
 
-                //freqLFO
-                n = contentShortened.search("\n"); //find CR
-                currentFreqLFO = parseFloat(contentShortened.slice(0, n));
-                contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    //ampLFO
+                    n = contentShortened.search("\n"); //find CR
+                    var currentAmpLFO_read = parseFloat(contentShortened.slice(0, n));
+                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    //throw error if wrong
+                    if (isNaN(currentAmpLFO_read) || currentAmpLFO_read > 5000 || currentAmpLFO_read < 0) {
+                        throw new Error('Invalid LFO amplitude value');
+                    } else {
+                        currentAmpLFO = currentAmpLFO_read;
+                    }
 
-                //ampLFO
-                n = contentShortened.search("\n"); //find CR
-                currentAmpLFO = parseFloat(contentShortened.slice(0, n));
-                contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    //eqGains
+                    n = contentShortened.search("\n"); //find CR
+                    eqString = contentShortened.slice(0, n).split(',');
+                    var eqGains_read0 = parseFloat(eqString[0]);
+                    var eqGains_read1 = parseFloat(eqString[1]);
+                    var eqGains_read2 = parseFloat(eqString[2]);
+                    // throw error if wrong
+                    if (isNaN(eqGains_read0) || isNaN(eqGains_read1) || isNaN(eqGains_read2)) {
+                        throw new Error('Invalid filtering slider values');
+                    } else if (eqGains_read0 > 20 || eqGains_read0 < -20 || eqGains_read1 > 20 || eqGains_read1 < -20 || eqGains_read2 > 20 || eqGains_read2 < -20) {
+                        throw new Error('Filtering slider values out of range');
+                    }
 
-                //eqGains
-                n = contentShortened.search("\n"); //find CR
-                eqString = contentShortened.slice(0, n).split(',');
-                eqGains[0] = parseFloat(eqString[0]);
-                eqGains[1] = parseFloat(eqString[1]);
-                eqGains[2] = parseFloat(eqString[2]);
+                } //if error is thrown, display dialogue box and reset to previous values
+                catch (error) {
+                    // console.log(error)
+                    alert("Invalid text file");
 
-                //reset UI using the new values
-                this.setup();
+                    //reset to previous values
+                    currentType = currentType_temp;
+                    currentFreqMain = currentFreqMain_temp;
+                    currentAmpMain = currentAmpMain_temp;
+                    isLFOon = isLFOon_temp;
+                    currentFreqLFO = currentFreqLFO_temp;
+                    currentAmpLFO = currentAmpLFO_temp;
+                    eqGains = eqGains_temp;
+
+                } finally {
+                    //reset UI using the new values
+                    setOscillatorValues();
+                    setUIValues();
+                }
             };
         };
     }
@@ -944,5 +1005,25 @@ function mainScene() {
         circle(spacingOuter * 2 + colWidth + spacingInner + ((activeOctave * 2) - 1) * 18, height - spacingOuter - 50 * 2 - 18, 15);
 
     }
+
+    //update All UI elements based on current values
+    function setUIValues() {
+        setToggleValues();
+
+        //starting parameters
+        XY_freqAmp.valX = 1; //amplitude at 1
+        XY_freqAmp.valY = freqToMidi(currentFreqMain);
+        slider_gain.val = currentAmpMain;
+
+        //set EQ gains & slider gains
+        for (let i = 0; i < 3; i++) {
+            eq.bands[i].gain(eqGains[i]);
+        }
+        slider_eq0.val = eqGains[0];
+        slider_eq1.val = eqGains[1];
+        slider_eq2.val = eqGains[2];
+
+    }
+
 
 }

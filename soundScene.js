@@ -51,17 +51,8 @@ function soundScene() {
         button_mainGui = createButton("x", width - spacingOuter - spacingInner - 25, spacingOuter + spacingInner, 25, 25);
 
         //set status of UI elements and oscillators
-        setToggleValues();
         setOscillatorValues();
-
-        if (isLFOon) {
-            toggle_OnOff2.val = true;
-        }
-
-        slider_gain.val = currentAmpMain;
-        slider_freqCopy.val = freqToMidi(currentFreqMain);
-        slider_depthLFO.val = currentAmpLFO;
-        slider_freqLFO.val = freqToMidi(currentFreqLFO);
+        setUIValues();
 
     };
     this.enter = function() {
@@ -387,5 +378,19 @@ function soundScene() {
         rect(colWidth * 2 + spacingOuter * 3, rowHeight + spacingOuter * 3 + textBarHeight, colWidth, rowHeight, rounding, rounding); //bottom right
         noStroke();
         strokeWeight(1)
+    }
+
+    function setUIValues() {
+        setToggleValues();
+
+        if (isLFOon) {
+            toggle_OnOff2.val = true;
+        }
+
+        slider_gain.val = currentAmpMain;
+        slider_freqCopy.val = freqToMidi(currentFreqMain);
+        slider_depthLFO.val = currentAmpLFO;
+        slider_freqLFO.val = freqToMidi(currentFreqLFO);
+
     }
 }
