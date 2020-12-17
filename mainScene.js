@@ -169,6 +169,14 @@ function mainScene() {
         text("Low", spacingOuter + spacingInner + 30, spacingOuter * 3 + spacingInner + textBarHeight + rowHeight + 65);
         text("Mid", spacingOuter + spacingInner + 130, spacingOuter * 3 + spacingInner + textBarHeight + rowHeight + 65);
         text("High", spacingOuter + spacingInner + 230, spacingOuter * 3 + spacingInner + textBarHeight + rowHeight + 65);
+        textAlign(CENTER, CENTER);
+        text('Amplitude', spacingOuter * 3 + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight - spacingInner * 2)
+        push()
+        translate(spacingOuter * 2 + spacingInner * 2 + colWidth, spacingOuter * 2 + textBarHeight + rowHeight * 0.5)
+        rotate(radians(-90))
+        text('Frequency', 0, 0)
+        pop()
+        textAlign(LEFT, CENTER);
 
         textSize(25)
 
