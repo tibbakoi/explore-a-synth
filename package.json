@@ -14,7 +14,7 @@
         "p5": "1.1.9",
         "p5.sound": "0.3.11",
         "p5.touchgui": "0.5.2",
-        "p5.SceneManager": "mveteanu/p5.SceneManager"
+        "p5.SceneManager": "1.0.6"
     },
     "keywords": [],
     "author": "",
