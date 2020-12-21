@@ -19,6 +19,7 @@ function mainScene() {
     let fileInput;
 
     //temp for holding values when loading new ones
+    //needs to be outside of function to avoid overwriting
     let currentType_temp, currentFreqMain_temp, currentAmpMain_temp, isLFOon_temp, currentFreqLFO_temp, currentAmpLFO_temp, eqGains_temp;
 
     //styling for help buttons
@@ -50,7 +51,7 @@ function mainScene() {
         }); //all versions of the X are red
 
         //X-Y pad
-        XY_freqAmp = createSlider2d("freqAmp", colWidth + spacingOuter * 2, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, 0, 1, 1, maxMIDIval);
+        XY_freqAmp = createSlider2d("freqAmp", colWidth + spacingOuter * 2, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, 0, 1, minFreq, maxFreq);
         XY_freqAmp.setStyle({
             strokeBg: color(0, 196, 154),
             strokeBgHover: color(0, 196, 154),
@@ -552,7 +553,7 @@ function mainScene() {
         if (XY_freqAmp.isChanged && !toggle_controlType.val) {
             //store values
             currentAmpMain = XY_freqAmp.valX * slider_gain.val;
-            currentFreqMain = midiToFreq(XY_freqAmp.valY);
+            currentFreqMain = XY_freqAmp.valY;
             //set osc variables
             oscillatorMain.amp(currentAmpMain, 0.01);
             oscillatorCopy.amp(currentAmpMain, 0.01);
@@ -744,7 +745,7 @@ function mainScene() {
                     var currentFreqMain_read = parseFloat(contentShortened.slice(0, n));
                     contentShortened = contentShortened.slice(n + 1, contentShortened.length);
                     //throw error if wrong
-                    if (isNaN(currentFreqMain_read) || currentFreqMain_read > midiToFreq(maxMIDIval) || currentFreqMain_read < midiToFreq(1)) {
+                    if (isNaN(currentFreqMain_read) || currentFreqMain_read > maxFreq || currentFreqMain_read < minFreq) {
                         throw new Error('Invalid frequency value');
                     } else {
                         currentFreqMain = currentFreqMain_read;
@@ -832,7 +833,7 @@ function mainScene() {
 
     //----- musical functions -----//
     function playNote() {
-        currentFreqMain = midiToFreq(currentNote + currentOctave);
+        currentFreqMain = midiToFreq(currentNote + currentOctave); //left as midi as using keyboard here
         oscillatorMain.freq(currentFreqMain);
         oscillatorCopy.freq(currentFreqMain);
         envMain.play(oscillatorMain); //play with envelope
@@ -1020,7 +1021,7 @@ function mainScene() {
 
         //starting parameters
         XY_freqAmp.valX = 1; //amplitude at 1
-        XY_freqAmp.valY = freqToMidi(currentFreqMain);
+        XY_freqAmp.valY = currentFreqMain;
         slider_gain.val = currentAmpMain;
 
         //set EQ gains & slider gains

@@ -38,10 +38,10 @@ function soundScene() {
         }); //all versions of the X are red
 
         slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
-        slider_freqCopy = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 1, maxMIDIval);
+        slider_freqCopy = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, minFreq, maxFreq);
 
         slider_depthLFO = createSlider("gainLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + buttonHeight * 1.8, colWidth - spacingInner * 2 - 50, 30, 0, 5000);
-        slider_freqLFO = createSlider("freqLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 1, 120);
+        slider_freqLFO = createSlider("freqLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, minFreqLFO, maxFreqLFO);
 
         //help mode
         button_helpMode_osc1 = createButton("?", spacingOuter + colWidth - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
@@ -103,23 +103,22 @@ function soundScene() {
 
         //slider text labels
         textSize(18)
-        if (slider_freqCopy.val > freqToMidi(1000)) {
-            text(round(midiToFreq(slider_freqCopy.val) / 1000, 1) + "kHz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+        if (slider_freqCopy.val > 1000) {
+            text(round(slider_freqCopy.val / 1000, 1) + "kHz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
         } else {
-            text(round(midiToFreq(slider_freqCopy.val)) + "Hz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+            text(round(slider_freqCopy.val) + "Hz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
         }
 
-        if (slider_freqLFO.val > freqToMidi(1000)) {
-            speedString = (round(midiToFreq(slider_freqLFO.val) / 1000, 1) + "kHz");
+        if (slider_freqLFO.val > 1000) {
+            speedString = (round(slider_freqLFO.val / 1000, 1) + "kHz");
         } else {
-            speedString = (round(midiToFreq(slider_freqLFO.val)) + "Hz");
+            speedString = (round(slider_freqLFO.val) + "Hz");
         }
         text("Amount: " + round(slider_depthLFO.val), spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + buttonHeight * 1.5)
         text("Speed: " + speedString, spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + buttonHeight * 2.8)
 
         textSize(15)
         text("Vol: " + round(slider_gain.val, 1), spacingOuter + colWidth - spacingInner * 2 - 42, spacingOuter * 2 + textBarHeight + rowHeight - 65)
-
 
         noFill();
         textSize(25);
@@ -317,9 +316,36 @@ function soundScene() {
             oscillatorCopy.amp(currentAmpMain, 0.01);
         }
         if (slider_freqCopy.isChanged) {
-            currentFreqMain = midiToFreq(slider_freqCopy.val);
+            currentFreqMain = slider_freqCopy.val;
             oscillatorCopy.freq(currentFreqMain);
             oscillatorMain.freq(currentFreqMain);
+        }
+
+        //finer control of freq slider using arrows when hover over slider
+        //is drawing at 60fps, so is faster than can remove finger from key...
+        if (keyIsPressed) {
+            //main frequency slider
+            if (slider_freqCopy._hover && keyCode === LEFT_ARROW) {
+                currentFreqMain -= 1;
+                slider_freqCopy.val -= 1;
+                oscillatorMain.freq(currentFreqMain);
+            } else if (slider_freqCopy._hover && keyCode === RIGHT_ARROW) {
+                currentFreqMain += 1;
+                slider_freqCopy.val += 1;
+                oscillatorMain.freq(currentFreqMain);
+            }
+            // LFO frequency slider
+            else if (slider_freqLFO._hover && keyCode === LEFT_ARROW) {
+                currentFreqLFO -= 1;
+                slider_freqLFO.val -= 1;
+                oscillatorLFO.freq(currentFreqLFO);
+                oscillatorLFO_scaled.freq(currentFreqLFO);
+            } else if (slider_freqLFO._hover && keyCode === RIGHT_ARROW) {
+                currentFreqLFO += 1;
+                slider_freqLFO.val += 1;
+                oscillatorLFO.freq(currentFreqLFO);
+                oscillatorLFO_scaled.freq(currentFreqLFO);
+            }
         }
 
         //LFO depth and freq control
@@ -329,7 +355,7 @@ function soundScene() {
             oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01); //scaled for plotting
         }
         if (slider_freqLFO.isChanged) {
-            currentFreqLFO = midiToFreq(slider_freqLFO.val);
+            currentFreqLFO = slider_freqLFO.val;
             oscillatorLFO.freq(currentFreqLFO);
             oscillatorLFO_scaled.freq(currentFreqLFO); //for plotting purposes
         }
@@ -357,6 +383,7 @@ function soundScene() {
         if (button_mainGui.isPressed) {
             mgr.showScene(mainScene);
         }
+
     };
 
     function drawRectangles() {
@@ -388,9 +415,11 @@ function soundScene() {
         }
 
         slider_gain.val = currentAmpMain;
-        slider_freqCopy.val = freqToMidi(currentFreqMain);
+        slider_freqCopy.val = currentFreqMain;
         slider_depthLFO.val = currentAmpLFO;
         slider_freqLFO.val = freqToMidi(currentFreqLFO);
 
     }
+
+
 }

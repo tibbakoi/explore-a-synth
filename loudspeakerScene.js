@@ -46,7 +46,7 @@ function loudspeakerScene() {
         }); //all versions of the X are red
 
         slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
-        slider_freqCopy = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 1, maxMIDIval);
+        slider_freqCopy = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, 50, 8000);
 
         button_helpMode_osc = createButton("?", spacingOuter + colWidth - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
 
@@ -60,7 +60,7 @@ function loudspeakerScene() {
         //set other slider values, adjust loudspeaker based on frequency value
         slider_gain.val = currentAmpMain;
         slider_freqCopy.val = freqToMidi(currentFreqMain);
-        speedAdjustment = 60 - round(map(slider_freqCopy.val, 1, maxMIDIval, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
+        speedAdjustment = 60 - round(map(slider_freqCopy.val, minFreq, maxFreq, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
 
     };
     this.enter = function() {
@@ -107,9 +107,9 @@ function loudspeakerScene() {
         //slider text labels
         textSize(18)
         if (slider_freqCopy.val > freqToMidi(1000)) {
-            text(round(midiToFreq(slider_freqCopy.val) / 1000, 1) + "kHz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+            text(round(slider_freqCopy.val / 1000, 1) + "kHz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
         } else {
-            text(round(midiToFreq(slider_freqCopy.val)) + "Hz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+            text(round(slider_freqCopy.val) + "Hz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
         }
         textSize(15)
         text("Vol: " + round(slider_gain.val, 1), spacingOuter + colWidth - spacingInner * 2 - 42, spacingOuter * 2 + textBarHeight + rowHeight - 65)
@@ -258,10 +258,10 @@ function loudspeakerScene() {
             oscillatorCopy.amp(currentAmpMain, 0.01);
         }
         if (slider_freqCopy.isChanged) {
-            currentFreqMain = midiToFreq(slider_freqCopy.val);
+            currentFreqMain = slider_freqCopy.val;
             oscillatorCopy.freq(currentFreqMain);
             oscillatorMain.freq(currentFreqMain);
-            speedAdjustment = 60 - round(map(slider_freqCopy.val, 1, maxMIDIval, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
+            speedAdjustment = 60 - round(map(slider_freqCopy.val, minFreq, maxFreq, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
         }
 
         //----- get and draw waveforms -----//

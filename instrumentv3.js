@@ -31,6 +31,10 @@ let isLFOon = 0;
 let currentType = 'sine';
 let ampAnalyser;
 let maxMIDIval = 124;
+let maxFreq = 8000;
+let minFreq = 50;
+let maxFreqLFO = 8000;
+let minFreqLFO = 10;
 let isMute = 0;
 let eqGains = [0, 0, 0];
 let eqFreqs = [250, 3000, 6000];
@@ -56,7 +60,7 @@ function setup() {
     oscillatorMain.amp(currentAmpMain);
     oscillatorCopy.amp(currentAmpMain);
     oscillatorLFO.amp(currentAmpLFO);
-    oscillatorLFO_scaled.amp(currentAmpLFO / 5000); //is scale of slider
+    oscillatorLFO_scaled.amp(currentAmpLFO / 5000); //scaled of slider so can plot waveform between -1 and 1
 
     //filtering setup
     eq = new p5.EQ(3); //init with 3 bands
@@ -93,14 +97,17 @@ function draw() {
     mgr.draw();
 }
 
-//pass mousePressed event to scene manager to deal with
+//pass events to scene manager to deal with
 function mousePressed() {
     mgr.handleEvent("mousePressed");
 }
 
-//pass mouseReleased event to scene manager to deal with
 function mouseReleased() {
     mgr.handleEvent("mouseReleased");
+}
+
+function keyPressed() {
+    mgr.handleEvent("keyPressed");
 }
 
 //update UI elements based on current status
@@ -148,11 +155,9 @@ function drawWaveform(waveform, x1, x2, y1, y2) {
     stroke("white")
     strokeWeight(1)
     beginShape();
-    // vertex(0, height);
     for (let j = 0; j < waveform.length; j++) {
         vertex(map(j, 0, waveform.length, x1, x2), map(waveform[j], -1, 1, y1, y2)); //maps from -1 to 1 to the ycoord limits
     }
-    // vertex(width, height);
     endShape();
     noStroke();
 }
