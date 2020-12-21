@@ -11,8 +11,8 @@
         "url": "git+https://github.com/tibbakoi/explore-a-synth.git"
     },
     "dependencies": {
-        "p5.js": "1.1.9",
-        "p5.sound.js": "0.9.0",
+        "p5": "1.1.9",
+        "p5.sound": "0.9.0",
         "p5.touchgui": "L05/p5.touchgui#3a69a83",
         "p5.SceneManager": "mveteanu/p5.SceneManager"
     },
