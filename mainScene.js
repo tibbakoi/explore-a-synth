@@ -564,8 +564,10 @@ function mainScene() {
         //slider amplitude control
         if (slider_gain.isChanged) {
             currentAmpMain = XY_freqAmp.valX * slider_gain.val;
-            oscillatorMain.amp(currentAmpMain, 0.01);
-            oscillatorCopy.amp(currentAmpMain, 0.01);
+            if (!toggle_controlType.val) { //do not change osc amplitude if keyboard enabled
+                oscillatorMain.amp(currentAmpMain, 0.01);
+                oscillatorCopy.amp(currentAmpMain, 0.01);
+            }
         }
 
         //if in keyboard board, multiply the envelope when slider val changes
