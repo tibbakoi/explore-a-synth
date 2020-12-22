@@ -44,7 +44,7 @@ let mgr;
 
 function setup() {
     let canvas = createCanvas(colWidth * 3 + spacingOuter * 4, rowHeight * 2 + spacingOuter * 4 + textBarHeight);
-    canvas.parent('instrumentv1'); //specifies which div to put the canvas in
+    canvas.parent('instrument'); //specifies which div to put the canvas in
 
     //p5 sound objects - external to any specific scene
     oscillatorMain = new p5.Oscillator('sine'); //main output
