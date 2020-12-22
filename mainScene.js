@@ -187,14 +187,15 @@ function mainScene() {
         text("This is where our inputs control the sound.", spacingOuter * 2 + colWidth, spacingOuter + spacingInner, colWidth, textBarHeight);
         text("This is where the output sound is represented.", spacingOuter * 3 + spacingInner + colWidth * 2, spacingOuter + spacingInner, colWidth - spacingInner, textBarHeight);
 
-        //slider text labels
+        //frequency text label
         textAlign(RIGHT, CENTER);
         textSize(18)
-        if (XY_freqAmp.valY > 1000) {
-            text(round(XY_freqAmp.valY / 1000, 1) + "kHz", spacingOuter * 2 + colWidth * 2 - spacingInner, spacingOuter * 2 + textBarHeight + spacingInner * 2)
+        if (currentFreqMain > 1000) {
+            text(round(currentFreqMain / 1000, 1) + "kHz", spacingOuter * 2 + colWidth * 2 - spacingInner, spacingOuter * 2 + textBarHeight + spacingInner * 2)
         } else {
-            text(round(XY_freqAmp.valY) + "Hz", spacingOuter * 2 + colWidth * 2 - spacingInner, spacingOuter * 2 + textBarHeight + spacingInner * 2)
+            text(round(currentFreqMain) + "Hz", spacingOuter * 2 + colWidth * 2 - spacingInner, spacingOuter * 2 + textBarHeight + spacingInner * 2)
         }
+
         textAlign(LEFT, CENTER);
         noFill();
 
@@ -204,6 +205,7 @@ function mainScene() {
         // draw active/inactive keyboard
         if (toggle_controlType.val) {
             drawKeyboard(1); //active keyboard
+            drawOctaveIndicator(currentOctave);
         } else {
             drawKeyboard(0); //inactive keyboard
         }

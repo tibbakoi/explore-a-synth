@@ -17,3 +17,6 @@ Developed as a collaboration between UKESF and the AudioLab (University of York)
 ### mainScene.js
 ### soundScene.js
 ### loudspeakerScene.js
+
+## Contact
+Any questions may be communicated via [Issues](https://github.com/tibbakoi/explore-a-synth/issues).
