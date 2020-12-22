@@ -678,43 +678,55 @@ function mainScene() {
             } else if (XY_freqAmp._hover && frameCount % 4 == true) { //if hover over XY pad (triggers every 4 frames ie 15fps)
                 switch (keyCode) {
                     case UP_ARROW: //increase freq
-                        currentFreqMain += 1;
-                        XY_freqAmp.valY = currentFreqMain;
-                        oscillatorMain.freq(currentFreqMain);
-                        oscillatorCopy.freq(currentFreqMain);
+                        if (currentFreqMain <= maxFreq - 1) {
+                            currentFreqMain += 1;
+                            XY_freqAmp.valY = currentFreqMain;
+                            oscillatorMain.freq(currentFreqMain);
+                            oscillatorCopy.freq(currentFreqMain);
+                        }
                         break;
                     case DOWN_ARROW: //decrease freq
-                        currentFreqMain -= 1;
-                        XY_freqAmp.valY = currentFreqMain;
-                        oscillatorMain.freq(currentFreqMain);
-                        oscillatorCopy.freq(currentFreqMain);
+                        if (currentFreqMain >= minFreq + 1) {
+                            currentFreqMain -= 1;
+                            XY_freqAmp.valY = currentFreqMain;
+                            oscillatorMain.freq(currentFreqMain);
+                            oscillatorCopy.freq(currentFreqMain);
+                        }
                         break;
-                    case LEFT_ARROW: //increase amp within XY pad
-                        XY_freqAmp.valX -= 0.01;
-                        currentAmpMain = XY_freqAmp.valX * slider_gain.val;
-                        oscillatorMain.amp(currentAmpMain, 0.01);
-                        oscillatorCopy.amp(currentAmpMain, 0.01);
+                    case LEFT_ARROW: //decrease amp within XY pad
+                        if (XY_freqAmp.valX >= 0.01) {
+                            XY_freqAmp.valX -= 0.01;
+                            currentAmpMain = XY_freqAmp.valX * slider_gain.val;
+                            oscillatorMain.amp(currentAmpMain, 0.01);
+                            oscillatorCopy.amp(currentAmpMain, 0.01);
+                        }
                         break;
-                    case RIGHT_ARROW: //decrease amp within XY pad
-                        XY_freqAmp.valX += 0.01;
-                        currentAmpMain = XY_freqAmp.valX * slider_gain.val;
-                        oscillatorMain.amp(currentAmpMain, 0.01);
-                        oscillatorCopy.amp(currentAmpMain, 0.01);
+                    case RIGHT_ARROW: //increase amp within XY pad
+                        if (XY_freqAmp.valX <= 0.99) {
+                            XY_freqAmp.valX += 0.01;
+                            currentAmpMain = XY_freqAmp.valX * slider_gain.val;
+                            oscillatorMain.amp(currentAmpMain, 0.01);
+                            oscillatorCopy.amp(currentAmpMain, 0.01);
+                        }
                         break;
                 }
             } else if (slider_gain._hover && frameCount % 4 == true) { //if hover over vol slider (triggers every 4 frames ie 15fps)
                 switch (keyCode) {
-                    case LEFT_ARROW: //increase amp within XY pad
-                        slider_gain.val -= 0.01;
-                        currentAmpMain = XY_freqAmp.valX * slider_gain.val;
-                        oscillatorMain.amp(currentAmpMain, 0.01);
-                        oscillatorCopy.amp(currentAmpMain, 0.01);
+                    case LEFT_ARROW: //decrease amp within XY pad
+                        if (slider_gain.val >= 0.01) {
+                            slider_gain.val -= 0.01;
+                            currentAmpMain = XY_freqAmp.valX * slider_gain.val;
+                            oscillatorMain.amp(currentAmpMain, 0.01);
+                            oscillatorCopy.amp(currentAmpMain, 0.01);
+                        }
                         break;
-                    case RIGHT_ARROW: //decrease amp within XY pad
-                        slider_gain.val += 0.01;
-                        currentAmpMain = XY_freqAmp.valX * slider_gain.val;
-                        oscillatorMain.amp(currentAmpMain, 0.01);
-                        oscillatorCopy.amp(currentAmpMain, 0.01);
+                    case RIGHT_ARROW: //increase amp within XY pad
+                        if (slider_gain.val <= 0.99) {
+                            slider_gain.val += 0.01;
+                            currentAmpMain = XY_freqAmp.valX * slider_gain.val;
+                            oscillatorMain.amp(currentAmpMain, 0.01);
+                            oscillatorCopy.amp(currentAmpMain, 0.01);
+                        }
                         break;
                 }
             }

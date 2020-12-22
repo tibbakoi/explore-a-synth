@@ -267,30 +267,37 @@ function loudspeakerScene() {
         //finer control of freq slider using arrows when hover over slider
         if (keyIsPressed) {
             if (frameCount % 4 == true) { //only triggers every 4 frames to account for length of time pressing the key - effectively working at 15fps
-
                 //main frequency slider
-                if (slider_freqCopy._hover && keyCode === LEFT_ARROW) {
-                    currentFreqMain -= 1;
-                    slider_freqCopy.val -= 1;
-                    oscillatorMain.freq(currentFreqMain);
-                    oscillatorCopy.freq(currentFreqMain);
-                } else if (slider_freqCopy._hover && keyCode === RIGHT_ARROW) {
-                    currentFreqMain += 1;
-                    slider_freqCopy.val += 1;
-                    oscillatorMain.freq(currentFreqMain);
-                    oscillatorCopy.freq(currentFreqMain);
+                if (slider_freqCopy._hover && keyCode === LEFT_ARROW) { //decrease frequency
+                    if (currentFreqMain >= minFreq + 1) {
+                        currentFreqMain -= 1;
+                        slider_freqCopy.val -= 1;
+                        oscillatorMain.freq(currentFreqMain);
+                        oscillatorCopy.freq(currentFreqMain);
+                    }
+                } else if (slider_freqCopy._hover && keyCode === RIGHT_ARROW) { //increase frequency
+                    if (currentFreqMain <= maxFreq - 1) {
+                        currentFreqMain += 1;
+                        slider_freqCopy.val += 1;
+                        oscillatorMain.freq(currentFreqMain);
+                        oscillatorCopy.freq(currentFreqMain);
+                    }
                 }
                 //main gain slider
-                else if (slider_gain._hover && keyCode == LEFT_ARROW) {
-                    slider_gain.val -= 0.01;
-                    currentAmpMain = slider_gain.val;
-                    oscillatorMain.amp(currentAmpMain, 0.01);
-                    oscillatorCopy.amp(currentAmpMain, 0.01);
-                } else if (slider_gain._hover && keyCode == RIGHT_ARROW) {
-                    slider_gain.val += 0.01;
-                    currentAmpMain = slider_gain.val;
-                    oscillatorMain.amp(currentAmpMain, 0.01);
-                    oscillatorCopy.amp(currentAmpMain, 0.01);
+                else if (slider_gain._hover && keyCode == LEFT_ARROW) { //decrease amp
+                    if (slider_gain.val >= 0.01) {
+                        slider_gain.val -= 0.01;
+                        currentAmpMain = slider_gain.val;
+                        oscillatorMain.amp(currentAmpMain, 0.01);
+                        oscillatorCopy.amp(currentAmpMain, 0.01);
+                    }
+                } else if (slider_gain._hover && keyCode == RIGHT_ARROW) { //increase amp
+                    if (slider_gain.val <= 0.99) {
+                        slider_gain.val += 0.01;
+                        currentAmpMain = slider_gain.val;
+                        oscillatorMain.amp(currentAmpMain, 0.01);
+                        oscillatorCopy.amp(currentAmpMain, 0.01);
+                    }
                 }
             }
         }

@@ -321,56 +321,72 @@ function soundScene() {
             oscillatorMain.freq(currentFreqMain);
         }
 
-        //finer control of freq slider using arrows when hover over slider
+        //finer control of sliders using arrows when hover over slider
         if (keyIsPressed) {
             if (frameCount % 4 == true) { //only triggers every 4 frames to account for length of time pressing the key - effectively working at 15fps
                 //main frequency slider
-                if (slider_freqCopy._hover && keyCode === LEFT_ARROW) {
-                    currentFreqMain -= 1;
-                    slider_freqCopy.val -= 1;
-                    oscillatorMain.freq(currentFreqMain);
-                    oscillatorCopy.freq(currentFreqMain);
-                } else if (slider_freqCopy._hover && keyCode === RIGHT_ARROW) {
-                    currentFreqMain += 1;
-                    slider_freqCopy.val += 1;
-                    oscillatorMain.freq(currentFreqMain);
-                    oscillatorCopy.freq(currentFreqMain);
+                if (slider_freqCopy._hover && keyCode === LEFT_ARROW) { //decrease freq
+                    if (currentFreqMain >= minFreq + 1) {
+                        currentFreqMain -= 1;
+                        slider_freqCopy.val -= 1;
+                        oscillatorMain.freq(currentFreqMain);
+                        oscillatorCopy.freq(currentFreqMain);
+                    }
+                } else if (slider_freqCopy._hover && keyCode === RIGHT_ARROW) { //increase freq
+                    if (currentFreqMain <= maxFreq - 1) {
+                        currentFreqMain += 1;
+                        slider_freqCopy.val += 1;
+                        oscillatorMain.freq(currentFreqMain);
+                        oscillatorCopy.freq(currentFreqMain);
+                    }
                 }
                 //main gain slider
-                else if (slider_gain._hover && keyCode == LEFT_ARROW) {
-                    slider_gain.val -= 0.01;
-                    currentAmpMain = slider_gain.val;
-                    oscillatorMain.amp(currentAmpMain, 0.01);
-                    oscillatorCopy.amp(currentAmpMain, 0.01);
-                } else if (slider_gain._hover && keyCode == RIGHT_ARROW) {
-                    slider_gain.val += 0.01;
-                    currentAmpMain = slider_gain.val;
-                    oscillatorMain.amp(currentAmpMain, 0.01);
-                    oscillatorCopy.amp(currentAmpMain, 0.01);
+                else if (slider_gain._hover && keyCode == LEFT_ARROW) { //decrease amp
+                    if (slider_gain.val >= 0.01) {
+                        slider_gain.val -= 0.01;
+                        currentAmpMain = slider_gain.val;
+                        oscillatorMain.amp(currentAmpMain, 0.01);
+                        oscillatorCopy.amp(currentAmpMain, 0.01);
+                    }
+                } else if (slider_gain._hover && keyCode == RIGHT_ARROW) { //increase amp
+                    if (slider_gain.val <= 0.99) {
+                        slider_gain.val += 0.01;
+                        currentAmpMain = slider_gain.val;
+                        oscillatorMain.amp(currentAmpMain, 0.01);
+                        oscillatorCopy.amp(currentAmpMain, 0.01);
+                    }
                 }
                 // LFO depth slider
-                else if (slider_depthLFO._hover && keyCode == LEFT_ARROW) {
-                    currentAmpLFO -= 1;
-                    slider_depthLFO.val = currentAmpLFO;
-                    oscillatorLFO.amp(currentAmpLFO, 0.01);
-                    oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
-                } else if (slider_depthLFO._hover && keyCode == RIGHT_ARROW) {
-                    currentAmpLFO += 1;
-                    slider_depthLFO.val = currentAmpLFO;
-                    oscillatorLFO.amp(currentAmpLFO, 0.01);
-                    oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
+                else if (slider_depthLFO._hover && keyCode == LEFT_ARROW) { //decrease LFO amount
+                    if (currentAmpLFO >= 1) {
+                        currentAmpLFO -= 1;
+                        slider_depthLFO.val = currentAmpLFO;
+                        oscillatorLFO.amp(currentAmpLFO, 0.01);
+                        oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
+                    }
+                } else if (slider_depthLFO._hover && keyCode == RIGHT_ARROW) { //increase LFO amount
+                    if (currentAmpLFO <= 4999) {
+                        currentAmpLFO += 1;
+                        slider_depthLFO.val = currentAmpLFO;
+                        oscillatorLFO.amp(currentAmpLFO, 0.01);
+                        oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
+                    }
                 }
                 // LFO frequency slider
-                else if (slider_freqLFO._hover && keyCode === LEFT_ARROW) {
-                    currentFreqLFO -= 1;
-                    slider_freqLFO.val -= 1;
-                    oscillatorLFO.freq(currentFreqLFO);
-                    oscillatorLFO_scaled.freq(currentFreqLFO);
-                } else if (slider_freqLFO._hover && keyCode === RIGHT_ARROW) {
-                    currentFreqLFO += 1;
-                    slider_freqLFO.val += 1;
-                    oscillatorLFO.freq(currentFreqLFO);
-                    oscillatorLFO_scaled.freq(currentFreqLFO);
+                else if (slider_freqLFO._hover && keyCode === LEFT_ARROW) { //decrease LFO freq
+                    if (currentFreqLFO >= minFreqLFO + 1) {
+                        currentFreqLFO -= 1;
+                        slider_freqLFO.val -= 1;
+                        oscillatorLFO.freq(currentFreqLFO);
+                        oscillatorLFO_scaled.freq(currentFreqLFO);
+                    }
+                } else if (slider_freqLFO._hover && keyCode === RIGHT_ARROW) { //increase LFO freq
+                    if (currentFreqLFO <= maxFreqLFO - 1) {
+                        currentFreqLFO += 1;
+                        slider_freqLFO.val += 1;
+                        oscillatorLFO.freq(currentFreqLFO);
+                        oscillatorLFO_scaled.freq(currentFreqLFO);
+                    }
                 }
             }
         }
