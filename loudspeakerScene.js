@@ -59,7 +59,7 @@ function loudspeakerScene() {
 
         //set other slider values, adjust loudspeaker based on frequency value
         slider_gain.val = currentAmpMain;
-        slider_freqCopy.val = freqToMidi(currentFreqMain);
+        slider_freqCopy.val = currentFreqMain;
         speedAdjustment = 60 - round(map(slider_freqCopy.val, minFreq, maxFreq, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
 
     };
@@ -106,7 +106,7 @@ function loudspeakerScene() {
 
         //slider text labels
         textSize(18)
-        if (slider_freqCopy.val > freqToMidi(1000)) {
+        if (slider_freqCopy.val > 1000) {
             text(round(slider_freqCopy.val / 1000, 1) + "kHz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
         } else {
             text(round(slider_freqCopy.val) + "Hz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
@@ -262,6 +262,37 @@ function loudspeakerScene() {
             oscillatorCopy.freq(currentFreqMain);
             oscillatorMain.freq(currentFreqMain);
             speedAdjustment = 60 - round(map(slider_freqCopy.val, minFreq, maxFreq, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
+        }
+
+        //finer control of freq slider using arrows when hover over slider
+        if (keyIsPressed) {
+            if (frameCount % 4 == true) { //only triggers every 4 frames to account for length of time pressing the key - effectively working at 15fps
+
+                //main frequency slider
+                if (slider_freqCopy._hover && keyCode === LEFT_ARROW) {
+                    currentFreqMain -= 1;
+                    slider_freqCopy.val -= 1;
+                    oscillatorMain.freq(currentFreqMain);
+                    oscillatorCopy.freq(currentFreqMain);
+                } else if (slider_freqCopy._hover && keyCode === RIGHT_ARROW) {
+                    currentFreqMain += 1;
+                    slider_freqCopy.val += 1;
+                    oscillatorMain.freq(currentFreqMain);
+                    oscillatorCopy.freq(currentFreqMain);
+                }
+                //main gain slider
+                else if (slider_gain._hover && keyCode == LEFT_ARROW) {
+                    slider_gain.val -= 0.01;
+                    currentAmpMain = slider_gain.val;
+                    oscillatorMain.amp(currentAmpMain, 0.01);
+                    oscillatorCopy.amp(currentAmpMain, 0.01);
+                } else if (slider_gain._hover && keyCode == RIGHT_ARROW) {
+                    slider_gain.val += 0.01;
+                    currentAmpMain = slider_gain.val;
+                    oscillatorMain.amp(currentAmpMain, 0.01);
+                    oscillatorCopy.amp(currentAmpMain, 0.01);
+                }
+            }
         }
 
         //----- get and draw waveforms -----//
