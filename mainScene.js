@@ -186,6 +186,15 @@ function mainScene() {
         text("This is where we design the sound.", spacingOuter, spacingOuter + spacingInner, colWidth, textBarHeight);
         text("This is where our inputs control the sound.", spacingOuter * 2 + colWidth, spacingOuter + spacingInner, colWidth, textBarHeight);
         text("This is where the output sound is represented.", spacingOuter * 3 + spacingInner + colWidth * 2, spacingOuter + spacingInner, colWidth - spacingInner, textBarHeight);
+
+        //slider text labels
+        textAlign(RIGHT, CENTER);
+        textSize(18)
+        if (XY_freqAmp.valY > 1000) {
+            text(round(XY_freqAmp.valY / 1000, 1) + "kHz", spacingOuter * 2 + colWidth * 2 - spacingInner, spacingOuter * 2 + textBarHeight + spacingInner * 2)
+        } else {
+            text(round(XY_freqAmp.valY) + "Hz", spacingOuter * 2 + colWidth * 2 - spacingInner, spacingOuter * 2 + textBarHeight + spacingInner * 2)
+        }
         textAlign(LEFT, CENTER);
         noFill();
 
@@ -587,7 +596,7 @@ function mainScene() {
             oscillatorCopy.amp(currentAmpMain);
         }
 
-        //playing via keyboard(1=keyboard on)
+        //playing via keyboard(1=keyboard on) and changing freq with arrows
         if (keyIsPressed) {
             if (toggle_controlType.val) { //only change frequency when keyboard input is enabled
                 //if one of the numbers, change octave
@@ -663,6 +672,18 @@ function mainScene() {
                             drawKeyboardIndicator(currentNote);
                             break;
                     }
+                }
+            } else if (XY_freqAmp._hover && frameCount % 4 == true) { //if hover over XY pad (triggers every 4 frames ie 15fps)
+                if (keyCode === UP_ARROW) { //UP increase frequency
+                    currentFreqMain += 1;
+                    XY_freqAmp.valY = currentFreqMain;
+                    oscillatorMain.freq(currentFreqMain);
+                    oscillatorCopy.freq(currentFreqMain);
+                } else if (keyCode === DOWN_ARROW) { //down decrease frequency
+                    currentFreqMain -= 1;
+                    XY_freqAmp.valY = currentFreqMain;
+                    oscillatorMain.freq(currentFreqMain);
+                    oscillatorCopy.freq(currentFreqMain);
                 }
             }
         }

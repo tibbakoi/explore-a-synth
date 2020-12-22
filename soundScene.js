@@ -322,29 +322,34 @@ function soundScene() {
         }
 
         //finer control of freq slider using arrows when hover over slider
-        //is drawing at 60fps, so is faster than can remove finger from key...
         if (keyIsPressed) {
-            //main frequency slider
-            if (slider_freqCopy._hover && keyCode === LEFT_ARROW) {
-                currentFreqMain -= 1;
-                slider_freqCopy.val -= 1;
-                oscillatorMain.freq(currentFreqMain);
-            } else if (slider_freqCopy._hover && keyCode === RIGHT_ARROW) {
-                currentFreqMain += 1;
-                slider_freqCopy.val += 1;
-                oscillatorMain.freq(currentFreqMain);
-            }
-            // LFO frequency slider
-            else if (slider_freqLFO._hover && keyCode === LEFT_ARROW) {
-                currentFreqLFO -= 1;
-                slider_freqLFO.val -= 1;
-                oscillatorLFO.freq(currentFreqLFO);
-                oscillatorLFO_scaled.freq(currentFreqLFO);
-            } else if (slider_freqLFO._hover && keyCode === RIGHT_ARROW) {
-                currentFreqLFO += 1;
-                slider_freqLFO.val += 1;
-                oscillatorLFO.freq(currentFreqLFO);
-                oscillatorLFO_scaled.freq(currentFreqLFO);
+            if (frameCount % 4 == true) { //only triggers every 4 frames to account for length of time pressing the key - effectively working at 15fps
+
+                //main frequency slider
+                if (slider_freqCopy._hover && keyCode === LEFT_ARROW) {
+                    currentFreqMain -= 1;
+                    slider_freqCopy.val -= 1;
+                    oscillatorMain.freq(currentFreqMain);
+                    oscillatorCopy.freq(currentFreqMain);
+                } else if (slider_freqCopy._hover && keyCode === RIGHT_ARROW) {
+                    currentFreqMain += 1;
+                    slider_freqCopy.val += 1;
+                    oscillatorMain.freq(currentFreqMain);
+                    oscillatorCopy.freq(currentFreqMain);
+                }
+
+                // LFO frequency slider
+                else if (slider_freqLFO._hover && keyCode === LEFT_ARROW) {
+                    currentFreqLFO -= 1;
+                    slider_freqLFO.val -= 1;
+                    oscillatorLFO.freq(currentFreqLFO);
+                    oscillatorLFO_scaled.freq(currentFreqLFO);
+                } else if (slider_freqLFO._hover && keyCode === RIGHT_ARROW) {
+                    currentFreqLFO += 1;
+                    slider_freqLFO.val += 1;
+                    oscillatorLFO.freq(currentFreqLFO);
+                    oscillatorLFO_scaled.freq(currentFreqLFO);
+                }
             }
         }
 
