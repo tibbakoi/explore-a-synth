@@ -1,5 +1,5 @@
 /*
-Explore-a-Synth release v0.0.0
+Explore-a-Synth release v1.0.0
 
 loudspeakerScene
 - Scene loaded when 'More' button pressed in loudspeaker section of mainScene

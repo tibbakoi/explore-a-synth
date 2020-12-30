@@ -1,5 +1,5 @@
 /*
-Explore-a-Synth release v0.0.0
+Explore-a-Synth release v1.0.0
 
 mainScene
 - First scene to load

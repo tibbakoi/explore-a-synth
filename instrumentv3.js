@@ -1,5 +1,5 @@
 /*
-Explore-a-Synth release v0.0.0
+Explore-a-Synth release v1.0.0
 
 Instrument v3 (v1 and 2 are in archive folder of repo).
 - Initialises global GUI variables and state variables
