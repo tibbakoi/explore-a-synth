@@ -16,9 +16,9 @@ Developed as a collaboration between UKESF and the AudioLab (University of York)
 Contains the links to required libraries and Explore-a-Synth files.
 Must contain a div with `id=instrument` to match `canvas.parent('instrument')` used in `instrumentv3.js`, for example:
 ```html
-    <div class="content">
-        <div class="instrumentHolder" id="instrument"></div>
-    </div>
+<div class="content">
+	<div class="instrumentHolder" id="instrument"></div>
+</div>
 ```
 ### instrumentv3
 Main instrument file (v3):
