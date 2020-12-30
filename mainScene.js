@@ -592,7 +592,7 @@ function mainScene() {
             currentAmpLFO_temp = currentAmpLFO;
             eqGains_temp = eqGains;
 
-            // Simulate the click to open the file selector
+            // Simulate the click to open the file selector - triggers functionality defined in setupFileReader()
             fileInput.click();
         }
 
@@ -814,132 +814,6 @@ function mainScene() {
         if (button_loudspeakerMore.isPressed) {
             mgr.showScene(loudspeakerScene);
         }
-    }
-
-    function setUpFileReader() {
-
-        //from https://stackoverflow.com/a/40971885
-        fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        //do stuff with file once selected
-        fileInput.onchange = e => {
-            var file = e.target.files[0]; //get file reference
-            var reader = new FileReader(); //set up file reader to get contents of file
-            reader.readAsText(file, 'UTF-8'); //read file
-
-            //what to do when have read file
-            reader.onload = readerEvent => {
-                //stop oscillators so don't get multiple sounds at once
-                oscillatorMain.stop();
-                oscillatorCopy.stop();
-                oscillatorLFO.stop();
-
-                //get content of file
-                var content = readerEvent.target.result;
-
-                //assign content to variables in order: type, freqMain, ampMain, isLFOon, freqLFO, ampLFO, eqGains
-                //determine if values are valid - throw error if any are incorrect, assign to correct variables if correct
-                try {
-                    //waveform type
-                    var n = content.search("\n"); //find the carriage return
-                    var currentType_read = content.slice(0, n); //assign the slice to currentType
-                    var contentShortened = content.slice(n + 1, content.length); //make shortened version for next variable
-                    //throw error if wrong, else assign to variable
-                    if (!(currentType_read == 'sine' || currentType_read == 'triangle' || currentType_read == 'sawtooth' || currentType_read == 'square')) {
-                        throw new Error('Invalid oscillator type');
-                    } else {
-                        currentType = currentType_read;
-                    }
-
-                    //freqMain
-                    n = contentShortened.search("\n"); //find CR
-                    var currentFreqMain_read = parseFloat(contentShortened.slice(0, n));
-                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
-                    //throw error if wrong
-                    if (isNaN(currentFreqMain_read) || currentFreqMain_read > maxFreq || currentFreqMain_read < minFreq) {
-                        throw new Error('Invalid frequency value');
-                    } else {
-                        currentFreqMain = currentFreqMain_read;
-                    }
-
-                    //ampMain
-                    n = contentShortened.search("\n"); //find CR
-                    var currentAmpMain_read = parseFloat(contentShortened.slice(0, n));
-                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
-                    //throw error if wrong
-                    if (isNaN(currentAmpMain_read) || currentAmpMain_read > 1 || currentFreqMain < 0) {
-                        throw new Error('Invalid amplitude value');
-                    } else {
-                        currentAmpMain = currentAmpMain_read;
-                    }
-
-                    //isLFOon
-                    n = contentShortened.search("\n"); //find CR
-                    var isLFOon_read = parseFloat(contentShortened.slice(0, n));
-                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
-                    //throw error if wrong
-                    if (isNaN(isLFOon_read) || !(isLFOon_read == 1 || isLFOon == 0)) {
-                        throw new Error('Invalid LFO flag value');
-                    } else {
-                        isLFOon = isLFOon_read;
-                    }
-
-                    //freqLFO
-                    n = contentShortened.search("\n"); //find CR
-                    var currentFreqLFO_read = parseFloat(contentShortened.slice(0, n));
-                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
-                    //throw error if wrong
-                    if (isNaN(currentFreqLFO_read) || currentFreqLFO_read > midiToFreq(120) || currentFreqLFO_read < midiToFreq(1)) {
-                        throw new Error('Invalid LFO frequency value');
-                    } else {
-                        currentFreqLFO = currentFreqLFO_read;
-                    }
-
-                    //ampLFO
-                    n = contentShortened.search("\n"); //find CR
-                    var currentAmpLFO_read = parseFloat(contentShortened.slice(0, n));
-                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
-                    //throw error if wrong
-                    if (isNaN(currentAmpLFO_read) || currentAmpLFO_read > 5000 || currentAmpLFO_read < 0) {
-                        throw new Error('Invalid LFO amplitude value');
-                    } else {
-                        currentAmpLFO = currentAmpLFO_read;
-                    }
-
-                    //eqGains
-                    n = contentShortened.search("\n"); //find CR
-                    eqString = contentShortened.slice(0, n).split(',');
-                    var eqGains_read0 = parseFloat(eqString[0]);
-                    var eqGains_read1 = parseFloat(eqString[1]);
-                    var eqGains_read2 = parseFloat(eqString[2]);
-                    // throw error if wrong
-                    if (isNaN(eqGains_read0) || isNaN(eqGains_read1) || isNaN(eqGains_read2)) {
-                        throw new Error('Invalid filtering slider values');
-                    } else if (eqGains_read0 > 20 || eqGains_read0 < -20 || eqGains_read1 > 20 || eqGains_read1 < -20 || eqGains_read2 > 20 || eqGains_read2 < -20) {
-                        throw new Error('Filtering slider values out of range');
-                    }
-
-                } //if error is thrown, display dialogue box and reset to previous values
-                catch (error) {
-                    // console.log(error)
-                    alert("Invalid text file");
-
-                    //reset to previous values
-                    currentType = currentType_temp;
-                    currentFreqMain = currentFreqMain_temp;
-                    currentAmpMain = currentAmpMain_temp;
-                    isLFOon = isLFOon_temp;
-                    currentFreqLFO = currentFreqLFO_temp;
-                    currentAmpLFO = currentAmpLFO_temp;
-                    eqGains = eqGains_temp;
-
-                } finally {
-                    //reset UI using the new values
-                    setOscillatorValues();
-                    setUIValues();
-                }
-            };
-        };
     }
 
     /*--- Other functions ---*/
@@ -1192,5 +1066,124 @@ function mainScene() {
         slider_eq1.val = eqGains[1];
         slider_eq2.val = eqGains[2];
 
+    }
+
+    // Set up file reader for processing text files
+    function setUpFileReader() {
+
+        // Adapted from https://stackoverflow.com/a/40971885
+        fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        // Do stuff with file once selected
+        fileInput.onchange = e => {
+            var file = e.target.files[0]; // Get file reference
+            var reader = new FileReader(); // Set up file reader to get contents of file
+            reader.readAsText(file, 'UTF-8'); // Read file
+
+            // Specify what to do when have read the file
+            reader.onload = readerEvent => {
+                // Stop oscillators so don't get multiple sounds at once
+                oscillatorMain.stop();
+                oscillatorCopy.stop();
+                oscillatorLFO.stop();
+
+                // Get content of file
+                var content = readerEvent.target.result;
+
+                // Assign content to variables in turn: type, freqMain, ampMain, isLFOon, freqLFO, ampLFO, eqGains
+                // Determine if values are valid - throw error if any are incorrect, assign to variables if correct
+                try {
+                    // Waveform type
+                    var n = content.search("\n"); //find the carriage return
+                    var currentType_read = content.slice(0, n); //assign the slice to currentType
+                    var contentShortened = content.slice(n + 1, content.length); //make shortened version for next variable
+                    if (!(currentType_read == 'sine' || currentType_read == 'triangle' || currentType_read == 'sawtooth' || currentType_read == 'square')) {
+                        throw new Error('Invalid oscillator type');
+                    } else {
+                        currentType = currentType_read;
+                    }
+
+                    // FreqMain
+                    n = contentShortened.search("\n"); //find CR
+                    var currentFreqMain_read = parseFloat(contentShortened.slice(0, n));
+                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    if (isNaN(currentFreqMain_read) || currentFreqMain_read > maxFreq || currentFreqMain_read < minFreq) {
+                        throw new Error('Invalid frequency value');
+                    } else {
+                        currentFreqMain = currentFreqMain_read;
+                    }
+
+                    // AmpMain
+                    n = contentShortened.search("\n"); //find CR
+                    var currentAmpMain_read = parseFloat(contentShortened.slice(0, n));
+                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    if (isNaN(currentAmpMain_read) || currentAmpMain_read > 1 || currentFreqMain < 0) {
+                        throw new Error('Invalid amplitude value');
+                    } else {
+                        currentAmpMain = currentAmpMain_read;
+                    }
+
+                    // IsLFOon
+                    n = contentShortened.search("\n"); //find CR
+                    var isLFOon_read = parseFloat(contentShortened.slice(0, n));
+                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    if (isNaN(isLFOon_read) || !(isLFOon_read == 1 || isLFOon == 0)) {
+                        throw new Error('Invalid LFO flag value');
+                    } else {
+                        isLFOon = isLFOon_read;
+                    }
+
+                    // FreqLFO
+                    n = contentShortened.search("\n"); //find CR
+                    var currentFreqLFO_read = parseFloat(contentShortened.slice(0, n));
+                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    if (isNaN(currentFreqLFO_read) || currentFreqLFO_read > midiToFreq(120) || currentFreqLFO_read < midiToFreq(1)) {
+                        throw new Error('Invalid LFO frequency value');
+                    } else {
+                        currentFreqLFO = currentFreqLFO_read;
+                    }
+
+                    // AmpLFO
+                    n = contentShortened.search("\n"); //find CR
+                    var currentAmpLFO_read = parseFloat(contentShortened.slice(0, n));
+                    contentShortened = contentShortened.slice(n + 1, contentShortened.length);
+                    if (isNaN(currentAmpLFO_read) || currentAmpLFO_read > 5000 || currentAmpLFO_read < 0) {
+                        throw new Error('Invalid LFO amplitude value');
+                    } else {
+                        currentAmpLFO = currentAmpLFO_read;
+                    }
+
+                    // EqGains
+                    n = contentShortened.search("\n"); //find CR
+                    eqString = contentShortened.slice(0, n).split(',');
+                    var eqGains_read0 = parseFloat(eqString[0]);
+                    var eqGains_read1 = parseFloat(eqString[1]);
+                    var eqGains_read2 = parseFloat(eqString[2]);
+                    if (isNaN(eqGains_read0) || isNaN(eqGains_read1) || isNaN(eqGains_read2)) {
+                        throw new Error('Invalid filtering slider values');
+                    } else if (eqGains_read0 > 20 || eqGains_read0 < -20 || eqGains_read1 > 20 || eqGains_read1 < -20 || eqGains_read2 > 20 || eqGains_read2 < -20) {
+                        throw new Error('Filtering slider values out of range');
+                    }
+
+                } // If error is thrown, display dialogue box and reset to previous values
+                catch (error) {
+                    alert("Invalid text file");
+
+                    //reset to previous values
+                    currentType = currentType_temp;
+                    currentFreqMain = currentFreqMain_temp;
+                    currentAmpMain = currentAmpMain_temp;
+                    isLFOon = isLFOon_temp;
+                    currentFreqLFO = currentFreqLFO_temp;
+                    currentAmpLFO = currentAmpLFO_temp;
+                    eqGains = eqGains_temp;
+
+                } finally {
+                    //reset UI with either the loaded values or the previous values
+                    setOscillatorValues();
+                    setUIValues();
+                }
+            };
+        };
     }
 }
