@@ -1,3 +1,14 @@
+/*
+Explore-a-Synth release v0.0.0
+
+soundScene
+
+Author: Kat Young
+https://github.com/tibbakoi
+2020
+
+*/
+
 function soundScene() {
     // some aspects duplicated from main GUI
     let button_mainGui, button_helpMode_osc1, button_helpMode_osc2;
@@ -7,6 +18,10 @@ function soundScene() {
     let waveformLFO = 0;
     let helpMode_osc1 = 0;
     let helpMode_osc2 = 0;
+    let toggle_OnOff; //power
+    let toggle_controlType; //enable playing by keyboard
+    let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 //osc type
+    let toggle_mute; //overall mute control
 
     //styling for help buttons
     let helpButtonActiveStyle = {
@@ -124,7 +139,7 @@ function soundScene() {
         textSize(25);
 
         //display osc type label based on which toggle is active
-        changeTypeLabel();
+        changeTypeLabel(toggle_Type1.val, toggle_Type2.val, toggle_Type3.val, toggle_Type4.val);
 
         // ----- pop up hover boxes if help mode on -----//
         if (helpMode_osc1) {
@@ -451,12 +466,46 @@ function soundScene() {
     }
 
     function setUIValues() {
-        setToggleValues();
+        //toggles
+        if (isOn) {
+            toggle_OnOff.val = 1;
+        }
 
+        if (isMute) {
+            toggle_mute.val = 1;
+        }
+
+        switch (currentType) {
+            case 'sine':
+                toggle_Type1.val = true;
+                toggle_Type2.val = false;
+                toggle_Type3.val = false;
+                toggle_Type4.val = false;
+                break;
+            case 'sawtooth':
+                toggle_Type1.val = false;
+                toggle_Type2.val = true;
+                toggle_Type3.val = false;
+                toggle_Type4.val = false;
+                break;
+            case 'triangle':
+                toggle_Type1.val = false;
+                toggle_Type2.val = false;
+                toggle_Type3.val = true;
+                toggle_Type4.val = false;
+                break;
+            case 'square':
+                toggle_Type1.val = false;
+                toggle_Type2.val = false;
+                toggle_Type3.val = false;
+                toggle_Type4.val = true;
+                break;
+        }
         if (isLFOon) {
             toggle_OnOff2.val = true;
         }
 
+        //slider values
         slider_gain.val = currentAmpMain;
         slider_freqCopy.val = currentFreqMain;
         slider_depthLFO.val = currentAmpLFO;

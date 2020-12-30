@@ -1,6 +1,20 @@
-//----- init stuff
+/*
+Explore-a-Synth release v0.0.0
 
-//global gui variables
+Instrument v3 (v1 and 2 are in archive folder of repo).
+- Initialises global GUI variables and state variables
+- Creates global audio objects
+- Sets up SceneManager to manage different scenes that can be moved between
+- Current state is stored to variables to allow passing of state between scenes
+- Uses touchGUI for GUI elements (drawn to canvas, not DOM)
+
+Author: Kat Young
+https://github.com/tibbakoi
+2020
+
+*/
+
+//Global GUI variables. Useful for calculating pixel locations within canvas.
 let guiMain, guiSound, guiLoudspeaker;
 let colWidth = 300;
 let rowHeight = 200;
@@ -9,79 +23,85 @@ let spacingOuter = 10;
 let spacingInner = 5;
 let textBarHeight = 100;
 
-let toggle_OnOff; //power
-let toggle_controlType; //enable playing by keyboard
-let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 //osc type
-let toggle_record; //record
-let XY_freqAmp; //x-y control
-let toggle_mute; //overall mute control
+//Global audio objects
 
-//audio stuff
-let oscillatorMain, oscillatorCopy, oscillatorLFO, oscillatorLFO_scaled; //oscCopy = duplicate of oscMain for the purposes of plotting before/after modulation
+/* While this is a 2-oscillator FM system (carrier and modulator), 4 oscillators are created for plotting reasons:
+oscillatorMain - carrier
+oscillatorCopy - duplicate of oscillatorMain to allow plotting of carrier waveform without modulation during FM synthesis. Parameters changed whenever oscillatorMain is changed.
+oscillatorLFO - modulator
+oscillatorLFO_scaled - duplicate of oscillatorLFO to allow plotting of modulator waveform between -1 to 1 rather than -5000 to 5000 (the actual mod. depth). Parameters changed whenver oscillatorLFO is changed.
+*/
+let oscillatorMain, oscillatorCopy, oscillatorLFO, oscillatorLFO_scaled;
+
+// As above, an additional fft is required to be able to plot the carrier waveform without modulation during FM synthesis.
 let fftMain, fftCopy, fftLFO;
 let eq;
-let currentOctave = 60; //3rd octave
-let currentNote = 0; //C
-let currentAmpMain = 0;
-let currentAmpLFO = 0;
-let currentFreqMain = 440;
-let currentFreqLFO = 110;
-let isOn = 0;
-let isLFOon = 0;
-let currentType = 'sine';
+let eqFreqs = [250, 3000, 6000];
 let ampAnalyser;
-let maxMIDIval = 124;
+
+//Frequency limits
 let maxFreq = 8000;
 let minFreq = 50;
 let maxFreqLFO = 8000;
 let minFreqLFO = 10;
+
+//Global state variables
+let isOn = 0;
+let isLFOon = 0;
 let isMute = 0;
+let currentType = 'sine';
+let currentAmpMain = 0;
+let currentAmpLFO = 0;
+let currentFreqMain = 440;
+let currentFreqLFO = 110;
 let eqGains = [0, 0, 0];
-let eqFreqs = [250, 3000, 6000];
+let currentNote, currentOctave = 60; //start keyboard in 4th octave. currentNote gets assigned when key is pressed
 
 //scene manager
 let mgr;
 
 function setup() {
+    //create canvas with 3 columns, 2 rows (plus the top text bar) and spacing between each column and row
     let canvas = createCanvas(colWidth * 3 + spacingOuter * 4, rowHeight * 2 + spacingOuter * 4 + textBarHeight);
     canvas.parent('instrument'); //specifies which div to put the canvas in
 
-    //p5 sound objects - external to any specific scene
+    //create p5 sound objects - external to any specific scene
     oscillatorMain = new p5.Oscillator('sine'); //main output
     oscillatorCopy = new p5.Oscillator('sine'); //for plotting carrier when modulated
     oscillatorLFO = new p5.Oscillator('sine'); //for modulation
     oscillatorLFO_scaled = new p5.Oscillator('sine'); //for plotting scaled modulation - otherwise the visual plot clips
 
-    oscillatorCopy.disconnect(); //disconnect from audio output so can plot signal but have no sound
-    oscillatorLFO.disconnect(); //doesn't need to be connected to audio output if used for modulation
-    oscillatorLFO_scaled.disconnect(); //doesn't need to be connected to audio output if used for plotting scaled modulation
+    //disconnect unneeded oscillators from sound output
+    oscillatorCopy.disconnect();
+    oscillatorLFO.disconnect();
+    oscillatorLFO_scaled.disconnect();
 
-    //oscillator setup
-    oscillatorMain.amp(currentAmpMain);
-    oscillatorCopy.amp(currentAmpMain);
-    oscillatorLFO.amp(currentAmpLFO);
-    oscillatorLFO_scaled.amp(currentAmpLFO / 5000); //scaled of slider so can plot waveform between -1 and 1
+    //set oscillator amplitudes to 0 to prevent sounding
+    oscillatorMain.amp(0);
+    oscillatorCopy.amp(0);
+    oscillatorLFO.amp(0);
+    oscillatorLFO_scaled.amp(0);
 
-    //filtering setup
-    eq = new p5.EQ(3); //init with 3 bands
-    eq.process(oscillatorMain); //the other oscillators are used for modulation or for plotting purposes only, so not filtered
-    //all start at gain = 0
+    //set up filtering
+    eq = new p5.EQ(3); //init EQ with 3 bands
+    eq.process(oscillatorMain); //only need to process the carrier oscillator, not all oscillators
     for (let i = 0; i < 3; i++) {
-        eq.bands[i].gain(eqGains[i]);
-        eq.bands[i].freq(eqFreqs[i]);
-        eq.bands[i].res(1);
+        eq.bands[i].gain(0); //set gains to 0
+        eq.bands[i].res(1); // set resonance to 1
+        eq.bands[i].freq(eqFreqs[i]); //set centre frequencies
     }
 
-    //analyser setup
+    //set up fft analysers with smoothing of 0.8 and 256 bins
     fftMain = new p5.FFT(0.8, 256);
     fftCopy = new p5.FFT(0.8, 256);
     fftLFO = new p5.FFT(0.8, 256);
 
     fftMain.setInput(eq);
     fftCopy.setInput(oscillatorCopy);
-    fftLFO.setInput(oscillatorLFO_scaled);
+    fftLFO.setInput(oscillatorLFO_scaled); //analyse the scaled one so the plotted waveform is between -1 and 1 
 
-    ampAnalyser = new p5.Amplitude(); //for main output volume
+    //set up amplitude analyser for output volume (used to plot loudspeaker icon)
+    ampAnalyser = new p5.Amplitude();
 
     //set up scene manager
     mgr = new SceneManager();
@@ -92,12 +112,13 @@ function setup() {
 
 }
 
+//SceneManager manages this for each separate scene, so here is very sparse
 function draw() {
-    background(84, 106, 118);
+    background(84, 106, 118); //RGB colour
     mgr.draw();
 }
 
-//pass events to scene manager to deal with
+//Pass mouse and keyboard events to SceneManager to deal with
 function mousePressed() {
     mgr.handleEvent("mousePressed");
 }
@@ -110,47 +131,19 @@ function keyPressed() {
     mgr.handleEvent("keyPressed");
 }
 
-//update UI elements based on current status
-function setToggleValues() {
-    if (isOn) {
-        toggle_OnOff.val = 1;
-    }
-
-    if (isMute) {
-        toggle_mute.val = 1;
-    }
-
-    switch (currentType) {
-        case 'sine':
-            toggle_Type1.val = true;
-            toggle_Type2.val = false;
-            toggle_Type3.val = false;
-            toggle_Type4.val = false;
-            break;
-        case 'sawtooth':
-            toggle_Type1.val = false;
-            toggle_Type2.val = true;
-            toggle_Type3.val = false;
-            toggle_Type4.val = false;
-            break;
-        case 'triangle':
-            toggle_Type1.val = false;
-            toggle_Type2.val = false;
-            toggle_Type3.val = true;
-            toggle_Type4.val = false;
-            break;
-        case 'square':
-            toggle_Type1.val = false;
-            toggle_Type2.val = false;
-            toggle_Type3.val = false;
-            toggle_Type4.val = true;
-            break;
+//Avoid autoplay in accordance with Chrome requirements
+function touchStarted() {
+    if (getAudioContext().state !== 'running') {
+        getAudioContext().resume();
     }
 }
 
+/*--- Functions that can be called from any scene ---*/
+
+//Draw specified waveform as a line to specified region of canvas.
 function drawWaveform(waveform, x1, x2, y1, y2) {
-    //x1, x2 = left, right
-    //y1, y2 = bottom, top
+    //x1, x2 = left limit, right limit
+    //y1, y2 = bottom limit, top limit
     noFill();
     stroke("white")
     strokeWeight(1)
@@ -162,35 +155,36 @@ function drawWaveform(waveform, x1, x2, y1, y2) {
     noStroke();
 }
 
-function changeTypeLabel() {
+//Change the label next to type toggles based on which is currently selected.
+function changeTypeLabel(val1, val2, val3, val4) {
     textSize(25);
-    if (toggle_Type1.val) {
+    if (val1) {
         fill("white");
         noStroke();
         text('Sine', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-    } else if (toggle_Type2.val) {
+    } else if (val2) {
         fill("white");
         noStroke();
         text('Saw', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-    } else if (toggle_Type3.val) {
+    } else if (val3) {
         fill("white");
         noStroke();
         text('Tri', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
-    } else if (toggle_Type4.val) {
+    } else if (val4) {
         fill("white");
         noStroke();
         text('Sqr', spacingOuter + spacingInner * 5 + buttonHeight * 4, spacingOuter * 2 + textBarHeight + spacingInner + buttonHeight + 25);
     }
 }
 
-//update oscillator parameters based on current status
+//Update oscillator parameters based on current variables. Useful for ensuring consistency across scenes. 
 function setOscillatorValues() {
     oscillatorMain.freq(currentFreqMain);
     oscillatorMain.amp(currentAmpMain, 0.01);
     oscillatorMain.setType(currentType);
 
-    oscillatorCopy.freq(currentFreqMain); //copy frequency and amplitude across
-    oscillatorCopy.amp(currentAmpMain, 0.01); //NB - is disconnected so not actual output
+    oscillatorCopy.freq(currentFreqMain);
+    oscillatorCopy.amp(currentAmpMain, 0.01);
     oscillatorCopy.setType(currentType);
 
     oscillatorLFO.freq(currentFreqLFO);
@@ -198,23 +192,10 @@ function setOscillatorValues() {
     oscillatorLFO_scaled.freq(currentFreqLFO);
     oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
 
-    //if LFO has been turned on, also set these
+    //if LFO is on, also set these oscillator parameters
     if (isLFOon) {
         oscillatorLFO.start();
         oscillatorLFO_scaled.start();
         oscillatorMain.freq(oscillatorLFO); //modulate the frequency
     }
-}
-
-// to avoid autoplay
-function touchStarted() {
-    if (getAudioContext().state !== 'running') {
-        getAudioContext().resume();
-    }
-}
-
-/// Add these lines below sketch to prevent scrolling on mobile
-function touchMoved() {
-    // do some stuff
-    return false;
 }

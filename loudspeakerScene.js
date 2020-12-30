@@ -1,8 +1,22 @@
+/*
+Explore-a-Synth release v0.0.0
+
+loudspeakerScene
+
+Author: Kat Young
+https://github.com/tibbakoi
+2020
+
+*/
+
 function loudspeakerScene() {
     let slider_gain, slider_freqCopy;
     let waveformCopy = 0;
     let helpMode_osc = 0;
     let button_helpMode_osc, button_mainGui2;
+    let toggle_OnOff; //power
+    let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 //osc type
+    let toggle_mute; //overall mute control
 
     //everything loudspeaker drawn relative to top corner of magnet with defined widths and heights
     let topCornerX = 600;
@@ -54,12 +68,10 @@ function loudspeakerScene() {
         button_mainGui2 = createButton("x", width - spacingOuter * 3 - spacingInner * 2, spacingOuter + spacingInner, 25, 25);
 
         //set status of UI elements and oscillators
-        setToggleValues();
+        setUIvalues();
         setOscillatorValues();
 
-        //set other slider values, adjust loudspeaker based on frequency value
-        slider_gain.val = currentAmpMain;
-        slider_freqCopy.val = currentFreqMain;
+        //adjust loudspeaker based on frequency value
         speedAdjustment = 60 - round(map(slider_freqCopy.val, minFreq, maxFreq, 0, 58)); //map midi range to amount of pixel to move, then minus from 60 (the framerate). large number is slower speed
 
     };
@@ -115,7 +127,7 @@ function loudspeakerScene() {
         text("Vol: " + round(slider_gain.val, 1), spacingOuter + colWidth - spacingInner * 2 - 42, spacingOuter * 2 + textBarHeight + rowHeight - 65)
 
         //display osc type label based on which toggle is active
-        changeTypeLabel();
+        changeTypeLabel(toggle_Type1.val, toggle_Type2.val, toggle_Type3.val, toggle_Type4.val);
 
         // return to main scene
         if (button_mainGui2.isPressed) {
@@ -456,5 +468,47 @@ function loudspeakerScene() {
         rect(spacingOuter * 2 + colWidth, spacingOuter, colWidth * 2 + spacingOuter, textBarHeight, rounding, rounding)
         rect(spacingOuter * 2 + colWidth, spacingOuter * 2 + textBarHeight, colWidth * 2 + spacingOuter, rowHeight * 2 + spacingOuter, rounding, rounding)
 
+    }
+
+    function setUIvalues() {
+        // toggles
+        if (isOn) {
+            toggle_OnOff.val = 1;
+        }
+
+        if (isMute) {
+            toggle_mute.val = 1;
+        }
+
+        switch (currentType) {
+            case 'sine':
+                toggle_Type1.val = true;
+                toggle_Type2.val = false;
+                toggle_Type3.val = false;
+                toggle_Type4.val = false;
+                break;
+            case 'sawtooth':
+                toggle_Type1.val = false;
+                toggle_Type2.val = true;
+                toggle_Type3.val = false;
+                toggle_Type4.val = false;
+                break;
+            case 'triangle':
+                toggle_Type1.val = false;
+                toggle_Type2.val = false;
+                toggle_Type3.val = true;
+                toggle_Type4.val = false;
+                break;
+            case 'square':
+                toggle_Type1.val = false;
+                toggle_Type2.val = false;
+                toggle_Type3.val = false;
+                toggle_Type4.val = true;
+                break;
+        }
+
+        //sliders
+        slider_gain.val = currentAmpMain;
+        slider_freqCopy.val = currentFreqMain;
     }
 }

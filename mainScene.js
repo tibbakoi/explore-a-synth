@@ -1,3 +1,14 @@
+/*
+Explore-a-Synth release v0.0.0
+
+mainScene
+
+Author: Kat Young
+https://github.com/tibbakoi
+2020
+
+*/
+
 // main instrument scene
 function mainScene() {
     let button_loudspeakerMore, button_soundMore;
@@ -17,6 +28,12 @@ function mainScene() {
     let button_SettingsSave, button_SettingsLoad;
     let envMain;
     let fileInput;
+    let toggle_OnOff; //power
+    let toggle_controlType; //enable playing by keyboard
+    let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 //osc type
+    let toggle_record; //record
+    let XY_freqAmp; //x-y control
+    let toggle_mute; //overall mute control
 
     //temp for holding values when loading new ones
     //needs to be outside of function to avoid overwriting
@@ -200,7 +217,7 @@ function mainScene() {
         noFill();
 
         //display osc type label based on which toggle is active
-        changeTypeLabel();
+        changeTypeLabel(toggle_Type1.val, toggle_Type2.val, toggle_Type3.val, toggle_Type4.val);
 
         // draw active/inactive keyboard
         if (toggle_controlType.val) {
@@ -1084,7 +1101,41 @@ function mainScene() {
 
     //update All UI elements based on current values
     function setUIValues() {
-        setToggleValues();
+        //UI toggle values
+        if (isOn) {
+            toggle_OnOff.val = 1;
+        }
+
+        if (isMute) {
+            toggle_mute.val = 1;
+        }
+
+        switch (currentType) {
+            case 'sine':
+                toggle_Type1.val = true;
+                toggle_Type2.val = false;
+                toggle_Type3.val = false;
+                toggle_Type4.val = false;
+                break;
+            case 'sawtooth':
+                toggle_Type1.val = false;
+                toggle_Type2.val = true;
+                toggle_Type3.val = false;
+                toggle_Type4.val = false;
+                break;
+            case 'triangle':
+                toggle_Type1.val = false;
+                toggle_Type2.val = false;
+                toggle_Type3.val = true;
+                toggle_Type4.val = false;
+                break;
+            case 'square':
+                toggle_Type1.val = false;
+                toggle_Type2.val = false;
+                toggle_Type3.val = false;
+                toggle_Type4.val = true;
+                break;
+        }
 
         //starting parameters
         XY_freqAmp.valX = 1; //amplitude at 1
