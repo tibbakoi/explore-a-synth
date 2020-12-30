@@ -37,7 +37,6 @@ let oscillatorMain, oscillatorCopy, oscillatorLFO, oscillatorLFO_scaled;
 let fftMain, fftCopy, fftLFO;
 let eq;
 let eqFreqs = [250, 3000, 6000];
-let ampAnalyser;
 
 // Frequency limits
 let maxFreq = 8000;
@@ -99,9 +98,6 @@ function setup() {
     fftMain.setInput(eq);
     fftCopy.setInput(oscillatorCopy);
     fftLFO.setInput(oscillatorLFO_scaled); //analyse the scaled one so the plotted waveform is between -1 and 1 
-
-    // Set up amplitude analyser for output volume (used to plot loudspeaker icon)
-    ampAnalyser = new p5.Amplitude();
 
     // Set up scene manager - add the three scenes and show the first one
     mgr = new SceneManager();

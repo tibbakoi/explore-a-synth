@@ -2,6 +2,10 @@
 Explore-a-Synth release v0.0.0
 
 soundScene
+- Scene loaded when 'More' button pressed in sound section of mainScene
+- Displays controls for two oscillators (carrier and modulator) and waveform plots for the modulated signal, the unmodulated signal and the modulating signal
+- UI elements created using touchGUI
+- Location of UI elements based on values set in instrumentv3 (colWidth, rowHeight, spacingOuter etc)
 
 Author: Kat Young
 https://github.com/tibbakoi
@@ -10,20 +14,22 @@ https://github.com/tibbakoi
 */
 
 function soundScene() {
-    // some aspects duplicated from main GUI
-    let button_mainGui, button_helpMode_osc1, button_helpMode_osc2;
-    let slider_gain, slider_freqCopy, slider_depthLFO, slider_freqLFO;
+    let button_mainGui; // navigation to other scenes
+    // Oscillator related
+    let slider_gain, slider_freq, slider_depthLFO, slider_freqLFO; // sliders for amp and freq for the two oscillators
+    let toggle_OnOff; // power
+    let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 // osc type
+    let toggle_mute; // overall mute control
+    // Somewhere to put all the waveforms
     let waveformMain = 0;
-    let waveformCopy = 0;
+    let waveformCopy = 0; // store a copy of the un-modulated carrier for plotting purposes
     let waveformLFO = 0;
+    // Help mode
+    let button_helpMode_osc1, button_helpMode_osc2;
     let helpMode_osc1 = 0;
-    let helpMode_osc2 = 0;
-    let toggle_OnOff; //power
-    let toggle_controlType; //enable playing by keyboard
-    let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 //osc type
-    let toggle_mute; //overall mute control
+    let helpMode_osc2 = 0; // help mode
 
-    //styling for help buttons
+    // Styling for help buttons
     let helpButtonActiveStyle = {
         fillBg: color("white"),
     };
@@ -33,18 +39,17 @@ function soundScene() {
     };
 
     this.setup = function() {
-        //UI objects using touchGUI library
+        /*--- Create UI elements ---*/
+        // UI objects using touchGUI library
         guiSound = createGui();
 
-        // sound settings toggles
+        // Sound settings toggles
         toggle_OnOff = createCheckbox("OnOff", spacingOuter + spacingInner, spacingOuter * 2 + textBarHeight + spacingInner, buttonHeight, buttonHeight);
         toggle_Type1 = createCheckbox("Sine", spacingOuter + spacingInner, spacingOuter * 2 + textBarHeight + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 1);
         toggle_Type2 = createCheckbox("Saw", spacingOuter + spacingInner * 2 + buttonHeight, spacingOuter * 2 + textBarHeight + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
         toggle_Type3 = createCheckbox("Tri", spacingOuter + spacingInner * 3 + buttonHeight * 2, spacingOuter * 2 + textBarHeight + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
         toggle_Type4 = createCheckbox("Squ", spacingOuter + spacingInner * 4 + buttonHeight * 3, spacingOuter * 2 + textBarHeight + spacingInner * 2 + buttonHeight, buttonHeight, buttonHeight, 0);
-
         toggle_OnOff2 = createCheckbox("OnOff", spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + spacingInner, buttonHeight, buttonHeight);
-
         toggle_mute = createCheckbox("Mute", spacingOuter + colWidth - spacingInner - 110, spacingOuter * 2 + spacingInner + textBarHeight, buttonHeight, buttonHeight);
         toggle_mute.setStyle({
             fillCheck: color("red"),
@@ -52,54 +57,75 @@ function soundScene() {
             fillCheckActive: color("red"),
         }); //all versions of the X are red
 
+        // Amplitude and frequency sliders for carrier
         slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
-        slider_freqCopy = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, minFreq, maxFreq);
+        slider_freq = createSlider("freqCopy", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, minFreq, maxFreq);
 
+        // Amplitude and frequency sliders for modulator
         slider_depthLFO = createSlider("gainLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + buttonHeight * 1.8, colWidth - spacingInner * 2 - 50, 30, 0, 5000);
         slider_freqLFO = createSlider("freqLFO", spacingOuter * 2 + spacingInner + colWidth, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2 + spacingInner + 30, colWidth - spacingInner * 2 - 50, 30, minFreqLFO, maxFreqLFO);
 
-        //help mode
+        // Help mode buttons
         button_helpMode_osc1 = createButton("?", spacingOuter + colWidth - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
         button_helpMode_osc2 = createButton("?", spacingOuter * 2 + colWidth * 2 - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
 
-        //back to main GUI
+        // SceneManager switch button
         button_mainGui = createButton("x", width - spacingOuter - spacingInner - 25, spacingOuter + spacingInner, 25, 25);
 
-        //set status of UI elements and oscillators
+        // Set status of UI elements and oscillators
         setOscillatorValues();
         setUIValues();
+    }
 
-    };
+    // Called whenever scene is switched to from another
     this.enter = function() {
         this.setup();
-    };
+    }
 
     this.draw = function() {
         background(84, 106, 118);
 
-        //figure out if in help mode or not
-        //osc1 section
-        if (button_helpMode_osc1.isPressed && helpMode_osc1 == 0) { //if button pressed to turn on 
+        /*--- Figure out whether in help mode or not, change button style accordingly---*/
+        // Osc1 section
+        if (button_helpMode_osc1.isPressed && helpMode_osc1 == 0) { // if button pressed to turn on 
             helpMode_osc1 = 1;
             button_helpMode_osc1.setStyle(helpButtonActiveStyle);
-        } else if (button_helpMode_osc1.isPressed && helpMode_osc1 == 1) { //if button pressed to turn off
+        } else if (button_helpMode_osc1.isPressed && helpMode_osc1 == 1) { // if button pressed to turn off
             helpMode_osc1 = 0;
             button_helpMode_osc1.setStyle(helpButtonInactiveStyle);
         }
-        //osc2 section
-        if (button_helpMode_osc2.isPressed && helpMode_osc2 == 0) { //if button pressed to turn on 
+        // Osc2 section
+        if (button_helpMode_osc2.isPressed && helpMode_osc2 == 0) { // if button pressed to turn on 
             helpMode_osc2 = 1;
             button_helpMode_osc2.setStyle(helpButtonActiveStyle);
-        } else if (button_helpMode_osc2.isPressed && helpMode_osc2 == 1) { //if button pressed to turn off
+        } else if (button_helpMode_osc2.isPressed && helpMode_osc2 == 1) { // if button pressed to turn off
             helpMode_osc2 = 0;
             button_helpMode_osc2.setStyle(helpButtonInactiveStyle);
         }
 
-        //----- draw stuff -----//
+        /*--- Draw GUI stuff: rectangles, UI elements, waveforms, text ---*/
         drawRectangles();
-        drawGui();
+        drawGui(); // required by touchGUI
 
-        //various text things
+        // If mouse is NOT currently pressed within region where modulated waveform is drawn, update waveform so the plot is live
+        if (!(mouseIsPressed && mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > spacingOuter * 2 + textBarHeight && mouseY < (spacingOuter * 3 + textBarHeight + rowHeight))) {
+            waveformMain = fftMain.waveform();
+        } // Else plot the static waveform to 'pause' the plot
+        drawWaveform(waveformMain, colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + spacingOuter * 2 + textBarHeight - 1, spacingOuter * 2 + textBarHeight - 1);
+
+        // If mouse is NOT currently pressed within region where un-modulated waveform is drawn, update waveform so the plot is live
+        if (!(mouseIsPressed && mouseX > spacingOuter && mouseX < (spacingOuter + colWidth) && mouseY > (rowHeight + spacingOuter * 2 + textBarHeight - 1) && mouseY < (rowHeight * 2 + spacingOuter * 2 + textBarHeight - 1))) {
+            waveformCopy = fftCopy.waveform();
+        }
+        drawWaveform(waveformCopy, spacingOuter, spacingOuter + colWidth, spacingOuter + textBarHeight + rowHeight * 2 + spacingOuter - 1, spacingOuter + textBarHeight + rowHeight + spacingOuter - 1);
+
+        // If mouse is NOT currently pressed within region where modulating waveform is drawn, update waveform so the plot is live
+        if (!(mouseIsPressed && mouseX > spacingOuter * 2 + colWidth && mouseX < (spacingOuter * 2 + colWidth * 2) && mouseY > (rowHeight + spacingOuter * 2 + textBarHeight - 1) && mouseY < (rowHeight * 2 + spacingOuter * 2 + textBarHeight - 1))) {
+            waveformLFO = fftLFO.waveform();
+        }
+        drawWaveform(waveformLFO, spacingOuter * 2 + colWidth, spacingOuter * 2 + colWidth * 2, spacingOuter + textBarHeight + rowHeight * 2 + spacingOuter - 1, spacingOuter + textBarHeight + rowHeight + spacingOuter - 1);
+
+        // Draw various bits of text
         fill("white");
         textSize(25);
         textAlign(LEFT, CENTER);
@@ -107,7 +133,7 @@ function soundScene() {
         text('Mute', spacingOuter + colWidth - spacingInner - 55, spacingOuter * 2 + textBarHeight + spacingInner + 25);
         text('Osc 2', spacingOuter * 2 + colWidth + spacingInner * 2 + 50, spacingOuter * 2 + textBarHeight + spacingInner + 25);
 
-        //explainer boxes
+        // Draw top row of text and explanation text
         textAlign(CENTER, CENTER)
         text("This is the first oscillator.", spacingOuter, spacingOuter + spacingInner, colWidth, textBarHeight);
         text("This is the second oscillator.", spacingOuter * 2 + colWidth, spacingOuter + spacingInner, colWidth, textBarHeight);
@@ -116,14 +142,13 @@ function soundScene() {
         text("We can use the two oscillators in combination to make more interesting sounds. Frequency modulation is wobbling the frequency of an oscillator with the output of second. Turn it on and off to see the effect!", spacingOuter * 3 + spacingInner + colWidth * 2, spacingOuter * 3 + textBarHeight + rowHeight, colWidth - spacingInner, rowHeight);
         textAlign(LEFT, CENTER);
 
-        //slider text labels
+        // Draw slider text labels
         textSize(18)
-        if (slider_freqCopy.val > 1000) {
-            text(round(slider_freqCopy.val / 1000, 1) + "kHz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+        if (slider_freq.val > 1000) {
+            text(round(slider_freq.val / 1000, 1) + "kHz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
         } else {
-            text(round(slider_freqCopy.val) + "Hz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
+            text(round(slider_freq.val) + "Hz", spacingOuter + colWidth - spacingInner * 2 - 45, spacingOuter * 4 + textBarHeight + buttonHeight * 2 + spacingInner + 45)
         }
-
         if (slider_freqLFO.val > 1000) {
             speedString = (round(slider_freqLFO.val / 1000, 1) + "kHz");
         } else {
@@ -131,18 +156,18 @@ function soundScene() {
         }
         text("Amount: " + round(slider_depthLFO.val), spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + buttonHeight * 1.5)
         text("Speed: " + speedString, spacingOuter * 2 + spacingInner + colWidth, spacingOuter * 2 + textBarHeight + buttonHeight * 2.8)
-
         textSize(15)
         text("Vol: " + round(slider_gain.val, 1), spacingOuter + colWidth - spacingInner * 2 - 42, spacingOuter * 2 + textBarHeight + rowHeight - 65)
 
         noFill();
         textSize(25);
 
-        //display osc type label based on which toggle is active
+        // Display oscillator type label based on which toggle is active
         changeTypeLabel(toggle_Type1.val, toggle_Type2.val, toggle_Type3.val, toggle_Type4.val);
 
-        // ----- pop up hover boxes if help mode on -----//
-        if (helpMode_osc1) {
+        /*--- Draw help mode boxes if help mode has been activated - draw on top of everything else. 
+        When each UI element is hovered over, display pop-up help box ---*/
+        if (helpMode_osc1) { // if left-most help button pressed
             if (toggle_OnOff._hover) {
                 fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
@@ -182,7 +207,7 @@ function soundScene() {
                 rectMode(CORNER)
                 textAlign(LEFT, CENTER)
             }
-            if (slider_freqCopy._hover) {
+            if (slider_freq._hover) {
                 fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
@@ -209,7 +234,7 @@ function soundScene() {
                 textAlign(LEFT, CENTER)
             }
         }
-        if (helpMode_osc2) {
+        if (helpMode_osc2) { // if right-most help button pressed
             if (toggle_OnOff2._hover) {
                 fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
@@ -251,9 +276,10 @@ function soundScene() {
             }
         }
 
-        // ----- define UI interactions -----//
+        /*--- Define UI interactions.
+        Note - touchGUI differs from p5 implementation: touchGUI uses if statements rather than events (see documentation for more info) ---*/
 
-        // turn synth on/off - both main and copy
+        // Turn synth on/off
         if (toggle_OnOff.val) {
             if (!oscillatorMain.started) { //to avoid repeatedly starting the oscillator
                 oscillatorMain.start();
@@ -266,12 +292,12 @@ function soundScene() {
             isOn = 0;
         }
 
-        // turn LFO synth on/off, connect to other oscillator
+        // Turn LFO synth on/off, connect to other oscillator
         if (toggle_OnOff2.val) {
-            if (!oscillatorLFO.started) { //to avoid repeatedly starting the oscillator
+            if (!oscillatorLFO.started) { // to avoid repeatedly starting the oscillator
                 oscillatorLFO.start();
                 oscillatorLFO_scaled.start();
-                oscillatorMain.freq(oscillatorLFO); //not oscCopy here, only oscMain
+                oscillatorMain.freq(oscillatorLFO); // not oscCopy here, only oscMain
                 isLFOon = 1;
             }
         } else {
@@ -280,42 +306,42 @@ function soundScene() {
             isLFOon = 0;
         }
 
-        // mute but everything continues happening
+        // Mute main output rather than oscillator. Useful for discussing waveforms without constant sound
         if (toggle_mute.val) {
-            p5.soundOut.output.gain.value = 0; //sets the output of the gain node to 0 so everything continues happening but no sound plays
+            p5.soundOut.output.gain.value = 0; // sets the output of the gain node to 0 so everything continues happening but no sound plays
             isMute = 1;
         } else {
-            p5.soundOut.output.gain.value = 1; //resets the output value of the gain node
+            p5.soundOut.output.gain.value = 1; // resets the output value of the gain node
             isMute = 0;
         }
 
-        // toggle between types - mutually exclusive
-        if (toggle_Type1.isPressed) {
-            if (!toggle_Type1.val) { toggle_Type1.val = true; } //can't turn a toggle off and leave none active
+        // Toggle between oscillator types - mutually exclusive, and can't turn a toggle off and leave none active
+        if (toggle_Type1.isPressed) { // Sine
+            if (!toggle_Type1.val) { toggle_Type1.val = true; }
             toggle_Type2.val = false;
             toggle_Type3.val = false;
             toggle_Type4.val = false;
             currentType = 'sine';
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
-        } else if (toggle_Type2.isPressed) {
-            if (!toggle_Type2.val) { toggle_Type2.val = true; } //can't turn a toggle off and leave none active
+        } else if (toggle_Type2.isPressed) { // Sawtooth
+            if (!toggle_Type2.val) { toggle_Type2.val = true; }
             toggle_Type1.val = false;
             toggle_Type3.val = false;
             toggle_Type4.val = false;
             currentType = 'sawtooth';
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
-        } else if (toggle_Type3.isPressed) {
-            if (!toggle_Type3.val) { toggle_Type3.val = true; } //can't turn a toggle off and leave none active
+        } else if (toggle_Type3.isPressed) { // Triangle
+            if (!toggle_Type3.val) { toggle_Type3.val = true; }
             toggle_Type1.val = false;
             toggle_Type2.val = false;
             toggle_Type4.val = false;
             currentType = 'triangle';
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
-        } else if (toggle_Type4.isPressed) {
-            if (!toggle_Type4.val) { toggle_Type4.val = true; } //can't turn a toggle off and leave none active
+        } else if (toggle_Type4.isPressed) { // Square
+            if (!toggle_Type4.val) { toggle_Type4.val = true; }
             toggle_Type1.val = false;
             toggle_Type2.val = false;
             toggle_Type3.val = false;
@@ -324,46 +350,67 @@ function soundScene() {
             oscillatorCopy.setType(currentType);
         }
 
-        //main gain and freq control
+        // Slider gain osc1
         if (slider_gain.isChanged) {
             currentAmpMain = slider_gain.val;
             oscillatorMain.amp(currentAmpMain, 0.01);
             oscillatorCopy.amp(currentAmpMain, 0.01);
         }
-        if (slider_freqCopy.isChanged) {
-            currentFreqMain = slider_freqCopy.val;
+
+        // Slider freq osc1
+        if (slider_freq.isChanged) {
+            currentFreqMain = slider_freq.val;
             oscillatorCopy.freq(currentFreqMain);
             oscillatorMain.freq(currentFreqMain);
         }
 
-        //finer control of sliders using arrows when hover over slider
+        // Slider gain osc2 - modulator or LFO, therefore referred to as depth
+        if (slider_depthLFO.isChanged) {
+            currentAmpLFO = slider_depthLFO.val;
+            oscillatorLFO.amp(currentAmpLFO, 0.01);
+            oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01); //scaled for plotting
+        }
+
+        // Slider freq osc2
+        if (slider_freqLFO.isChanged) {
+            currentFreqLFO = slider_freqLFO.val;
+            oscillatorLFO.freq(currentFreqLFO);
+            oscillatorLFO_scaled.freq(currentFreqLFO); //for plotting purposes
+        }
+
+        // Filtering key presses for changing sliders with arrows
         if (keyIsPressed) {
-            if (frameCount % 4 == true) { //only triggers every 4 frames to account for length of time pressing the key - effectively working at 15fps
-                //main frequency slider
-                if (slider_freqCopy._hover && keyCode === LEFT_ARROW) { //decrease freq
+            // Triggers every 4 frames to account for length of time pressing the key - effectively working at 15fps
+            if (frameCount % 4 == true) {
+                // If hover over main frequency slider and press left arrow
+                if (slider_freq._hover && keyCode === LEFT_ARROW) { // decrease frequency by 1
                     if (currentFreqMain >= minFreq + 1) {
                         currentFreqMain -= 1;
-                        slider_freqCopy.val -= 1;
-                        oscillatorMain.freq(currentFreqMain);
-                        oscillatorCopy.freq(currentFreqMain);
-                    }
-                } else if (slider_freqCopy._hover && keyCode === RIGHT_ARROW) { //increase freq
-                    if (currentFreqMain <= maxFreq - 1) {
-                        currentFreqMain += 1;
-                        slider_freqCopy.val += 1;
+                        slider_freq.val -= 1;
                         oscillatorMain.freq(currentFreqMain);
                         oscillatorCopy.freq(currentFreqMain);
                     }
                 }
-                //main gain slider
-                else if (slider_gain._hover && keyCode == LEFT_ARROW) { //decrease amp
+                // If hover over main frequency slider and press right arrow
+                else if (slider_freq._hover && keyCode === RIGHT_ARROW) { // increase frequency by 1
+                    if (currentFreqMain <= maxFreq - 1) {
+                        currentFreqMain += 1;
+                        slider_freq.val += 1;
+                        oscillatorMain.freq(currentFreqMain);
+                        oscillatorCopy.freq(currentFreqMain);
+                    }
+                }
+                // If hover over main gain slider and press left arrow
+                else if (slider_gain._hover && keyCode == LEFT_ARROW) { // decrease amplitude by 0.01
                     if (slider_gain.val >= 0.01) {
                         slider_gain.val -= 0.01;
                         currentAmpMain = slider_gain.val;
                         oscillatorMain.amp(currentAmpMain, 0.01);
                         oscillatorCopy.amp(currentAmpMain, 0.01);
                     }
-                } else if (slider_gain._hover && keyCode == RIGHT_ARROW) { //increase amp
+                }
+                // If hover over main gain slider and press right arrow
+                else if (slider_gain._hover && keyCode == RIGHT_ARROW) { // increase amplitude by 0.01
                     if (slider_gain.val <= 0.99) {
                         slider_gain.val += 0.01;
                         currentAmpMain = slider_gain.val;
@@ -371,31 +418,17 @@ function soundScene() {
                         oscillatorCopy.amp(currentAmpMain, 0.01);
                     }
                 }
-                // LFO depth slider
-                else if (slider_depthLFO._hover && keyCode == LEFT_ARROW) { //decrease LFO amount
-                    if (currentAmpLFO >= 1) {
-                        currentAmpLFO -= 1;
-                        slider_depthLFO.val = currentAmpLFO;
-                        oscillatorLFO.amp(currentAmpLFO, 0.01);
-                        oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
-                    }
-                } else if (slider_depthLFO._hover && keyCode == RIGHT_ARROW) { //increase LFO amount
-                    if (currentAmpLFO <= 4999) {
-                        currentAmpLFO += 1;
-                        slider_depthLFO.val = currentAmpLFO;
-                        oscillatorLFO.amp(currentAmpLFO, 0.01);
-                        oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
-                    }
-                }
-                // LFO frequency slider
-                else if (slider_freqLFO._hover && keyCode === LEFT_ARROW) { //decrease LFO freq
+                // If hover over LFO frequency slider and press left arrow
+                else if (slider_freqLFO._hover && keyCode === LEFT_ARROW) { // decrease LFO frequency by 0.01
                     if (currentFreqLFO >= minFreqLFO + 1) {
                         currentFreqLFO -= 1;
                         slider_freqLFO.val -= 1;
                         oscillatorLFO.freq(currentFreqLFO);
                         oscillatorLFO_scaled.freq(currentFreqLFO);
                     }
-                } else if (slider_freqLFO._hover && keyCode === RIGHT_ARROW) { //increase LFO freq
+                }
+                // If hover over LFO frequency slider and press right arrow
+                else if (slider_freqLFO._hover && keyCode === RIGHT_ARROW) { // increase LFO frequency by 0.01
                     if (currentFreqLFO <= maxFreqLFO - 1) {
                         currentFreqLFO += 1;
                         slider_freqLFO.val += 1;
@@ -403,70 +436,59 @@ function soundScene() {
                         oscillatorLFO_scaled.freq(currentFreqLFO);
                     }
                 }
+                // If hover over LFO gain/depth slider and press left arrow
+                else if (slider_depthLFO._hover && keyCode == LEFT_ARROW) { // decrease LFO gain by 1
+                    if (currentAmpLFO >= 1) {
+                        currentAmpLFO -= 1;
+                        slider_depthLFO.val = currentAmpLFO;
+                        oscillatorLFO.amp(currentAmpLFO, 0.01);
+                        oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
+                    }
+                } else if (slider_depthLFO._hover && keyCode == RIGHT_ARROW) { // increase LFO gain by 1
+                    if (currentAmpLFO <= 4999) {
+                        currentAmpLFO += 1;
+                        slider_depthLFO.val = currentAmpLFO;
+                        oscillatorLFO.amp(currentAmpLFO, 0.01);
+                        oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01);
+                    }
+                }
             }
         }
 
-        //LFO depth and freq control
-        if (slider_depthLFO.isChanged) {
-            currentAmpLFO = slider_depthLFO.val;
-            oscillatorLFO.amp(currentAmpLFO, 0.01);
-            oscillatorLFO_scaled.amp(currentAmpLFO / 5000, 0.01); //scaled for plotting
-        }
-        if (slider_freqLFO.isChanged) {
-            currentFreqLFO = slider_freqLFO.val;
-            oscillatorLFO.freq(currentFreqLFO);
-            oscillatorLFO_scaled.freq(currentFreqLFO); //for plotting purposes
-        }
-
-        //----- get and draw waveforms -----//
-        //if mouse is NOT pressed and within region where waveform is drawn, plot live version
-        if (!(mouseIsPressed && mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > spacingOuter * 2 + textBarHeight && mouseY < (spacingOuter * 3 + textBarHeight + rowHeight))) {
-            waveformMain = fftMain.waveform();
-        }
-        drawWaveform(waveformMain, colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + spacingOuter * 2 + textBarHeight - 1, spacingOuter * 2 + textBarHeight - 1);
-
-        //if mouse is NOT pressed and within region where waveform is drawn, plot live version
-        if (!(mouseIsPressed && mouseX > spacingOuter && mouseX < (spacingOuter + colWidth) && mouseY > (rowHeight + spacingOuter * 2 + textBarHeight - 1) && mouseY < (rowHeight * 2 + spacingOuter * 2 + textBarHeight - 1))) {
-            waveformCopy = fftCopy.waveform();
-        }
-        drawWaveform(waveformCopy, spacingOuter, spacingOuter + colWidth, spacingOuter + textBarHeight + rowHeight * 2 + spacingOuter - 1, spacingOuter + textBarHeight + rowHeight + spacingOuter - 1);
-
-        //if mouse is NOT pressed and within region where waveform is drawn, plot live version
-        if (!(mouseIsPressed && mouseX > spacingOuter * 2 + colWidth && mouseX < (spacingOuter * 2 + colWidth * 2) && mouseY > (rowHeight + spacingOuter * 2 + textBarHeight - 1) && mouseY < (rowHeight * 2 + spacingOuter * 2 + textBarHeight - 1))) {
-            waveformLFO = fftLFO.waveform();
-        }
-        drawWaveform(waveformLFO, spacingOuter * 2 + colWidth, spacingOuter * 2 + colWidth * 2, spacingOuter + textBarHeight + rowHeight * 2 + spacingOuter - 1, spacingOuter + textBarHeight + rowHeight + spacingOuter - 1);
-
-        // return to main scene
+        // Switch to mainScene
         if (button_mainGui.isPressed) {
             mgr.showScene(mainScene);
         }
+    }
 
-    };
+    /*--- Other functions ---*/
 
+    // Draw coloured boxes
     function drawRectangles() {
-        let rounding = 10;
+        let rounding = 10; // corner rounding
         stroke(255, 193, 84);
         strokeWeight(4);
         noFill();
 
+        // left column
         rect(spacingOuter, spacingOuter, colWidth, textBarHeight, rounding, rounding)
+        rect(spacingOuter, spacingOuter * 2 + textBarHeight, colWidth, rowHeight * 2 + spacingOuter, rounding, rounding);
+
+        // centre column
         rect(spacingOuter * 2 + colWidth, spacingOuter, colWidth, textBarHeight, rounding, rounding)
+        rect(spacingOuter * 2 + colWidth, spacingOuter * 2 + textBarHeight, colWidth, rowHeight * 2 + spacingOuter, rounding, rounding);
+
+        // right column
         rect(spacingOuter * 3 + colWidth * 2, spacingOuter, colWidth, textBarHeight, rounding, rounding)
-
-        rect(spacingOuter, spacingOuter * 2 + textBarHeight, colWidth, rowHeight * 2 + spacingOuter, rounding, rounding); //top left
-
-        rect(spacingOuter * 2 + colWidth, spacingOuter * 2 + textBarHeight, colWidth, rowHeight * 2 + spacingOuter, rounding, rounding); //bottom centre
-
-        rect(colWidth * 2 + spacingOuter * 3, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding); //top right
-
-        rect(colWidth * 2 + spacingOuter * 3, rowHeight + spacingOuter * 3 + textBarHeight, colWidth, rowHeight, rounding, rounding); //bottom right
+        rect(colWidth * 2 + spacingOuter * 3, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding);
+        rect(colWidth * 2 + spacingOuter * 3, rowHeight + spacingOuter * 3 + textBarHeight, colWidth, rowHeight, rounding, rounding);
         noStroke();
-        strokeWeight(1)
+        strokeWeight(1);
     }
 
+    // Update All UI elements based on current values
     function setUIValues() {
-        //toggles
+        // UI toggle values
         if (isOn) {
             toggle_OnOff.val = 1;
         }
@@ -505,13 +527,10 @@ function soundScene() {
             toggle_OnOff2.val = true;
         }
 
-        //slider values
+        // Frequency and amplitude slider values
         slider_gain.val = currentAmpMain;
-        slider_freqCopy.val = currentFreqMain;
+        slider_freq.val = currentFreqMain;
         slider_depthLFO.val = currentAmpLFO;
-        slider_freqLFO.val = freqToMidi(currentFreqLFO);
-
+        slider_freqLFO.val = currentFreqLFO;
     }
-
-
 }
