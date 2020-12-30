@@ -2,44 +2,55 @@
 Explore-a-Synth release v0.0.0
 
 mainScene
+- First scene to load
+- Displays oscillator controls, filtering controls, X-Y pad, keyboard, waveform plot, loudspeaker icon and record functionality
+- UI elements created using touchGUI
+- Location of UI elements based on values set in instrumentv3 (colWidth, rowHeight, spacingOuter etc)
 
 Author: Kat Young
 https://github.com/tibbakoi
 2020
-
 */
 
-// main instrument scene
 function mainScene() {
-    let button_loudspeakerMore, button_soundMore;
-    let waveform = 0;
-    let slider_gain;
-    let slider_eq0, slider_eq1, slider_eq2;
-    let button_eqReset;
-    let button_helpMode_sound, button_helpMode_input, button_helpMode_output;
-    let helpMode_sound = 0;
-    let helpMode_input = 0;
-    let helpMode_output = 0;
-    let loudspeakerWidth = 100;
-    let loudspeakerX = (spacingOuter * 3) + (colWidth * 2.25);;
-    let loudspeakerY = (spacingOuter * 3) + (rowHeight * 1.5) + textBarHeight;
-    let recorder, soundFile;
-    let button_AudioPlayback, button_AudioSave;
-    let button_SettingsSave, button_SettingsLoad;
-    let envMain;
-    let fileInput;
+    let button_loudspeakerMore, button_soundMore; //navigation to other scenes
+    // Oscillator related
     let toggle_OnOff; //power
     let toggle_controlType; //enable playing by keyboard
     let toggle_Type1, toggle_Type2, toggle_Type3, toggle_Type4 //osc type
-    let toggle_record; //record
-    let XY_freqAmp; //x-y control
     let toggle_mute; //overall mute control
+    let slider_gain; //vol slider
+    let button_SettingsSave, button_SettingsLoad; //buttons to save/load settings to/from text file
+    let fileInput; //fileInput to load file into
+    let waveform = 0; //somewhere to put the waveform
+    let XY_freqAmp; //x-y control
+    let envMain; //envelope for keyboard playing
 
-    //temp for holding values when loading new ones
-    //needs to be outside of function to avoid overwriting
+    // Filtering controls
+    let slider_eq0, slider_eq1, slider_eq2;
+    let button_eqReset;
+
+    // Help mode 
+    let button_helpMode_sound, button_helpMode_input, button_helpMode_output;
+    let helpMode_sound = 0; //flags for help mode off/on
+    let helpMode_input = 0;
+    let helpMode_output = 0;
+
+    // Loudspeaker icon
+    let loudspeakerSize = 100;
+    let loudspeakerX = (spacingOuter * 3) + (colWidth * 2.25);
+    let loudspeakerY = (spacingOuter * 3) + (rowHeight * 1.5) + textBarHeight;
+
+    // Recording functionality
+    let toggle_record; //record enable
+    let recorder, soundFile;
+    let button_AudioPlayback, button_AudioSave;
+
+    // Temp variables for holding current values when loading new ones in case load fails
+    // Needs to be outside of draw function to avoid overwriting
     let currentType_temp, currentFreqMain_temp, currentAmpMain_temp, isLFOon_temp, currentFreqLFO_temp, currentAmpLFO_temp, eqGains_temp;
 
-    //styling for help buttons
+    // Styling for help buttons
     let helpButtonActiveStyle = {
         fillBg: color("white"),
     };
@@ -50,32 +61,32 @@ function mainScene() {
 
     this.setup = function() {
 
-        //UI objects using touchGUI library
+        /*--- Create UI elements ---*/
+        // UI objects using touchGUI library
         guiMain = createGui();
 
-        // sound settings toggles
+        // Sound settings toggles
         toggle_OnOff = createCheckbox("OnOff", spacingOuter + spacingInner, spacingOuter * 2 + spacingInner + textBarHeight, buttonHeight, buttonHeight);
         toggle_Type1 = createCheckbox("Sine", spacingOuter + spacingInner, spacingOuter * 2 + spacingInner * 2 + buttonHeight + textBarHeight, buttonHeight, buttonHeight, 1);
         toggle_Type2 = createCheckbox("Saw", spacingOuter + spacingInner * 2 + buttonHeight, spacingOuter * 2 + spacingInner * 2 + buttonHeight + textBarHeight, buttonHeight, buttonHeight, 0);
         toggle_Type3 = createCheckbox("Tri", spacingOuter + spacingInner * 3 + buttonHeight * 2, spacingOuter * 2 + spacingInner * 2 + buttonHeight + textBarHeight, buttonHeight, buttonHeight, 0);
         toggle_Type4 = createCheckbox("Squ", spacingOuter + spacingInner * 4 + buttonHeight * 3, spacingOuter * 2 + spacingInner * 2 + buttonHeight + textBarHeight, buttonHeight, buttonHeight, 0);
-
         toggle_mute = createCheckbox("Mute", spacingOuter + colWidth - spacingInner - 110, spacingOuter * 2 + spacingInner + textBarHeight, buttonHeight, buttonHeight);
         toggle_mute.setStyle({
             fillCheck: color("red"),
             fillCheckHover: color("red"),
             fillCheckActive: color("red"),
-        }); //all versions of the X are red
+        }); //all versions of the mute X are red
 
-        //X-Y pad
+        // X-Y pad
         XY_freqAmp = createSlider2d("freqAmp", colWidth + spacingOuter * 2, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, 0, 1, minFreq, maxFreq);
         XY_freqAmp.setStyle({
             strokeBg: color(0, 196, 154),
             strokeBgHover: color(0, 196, 154),
             strokeBgActive: color(0, 196, 154)
-        });
+        }); //set outline to match other colours
 
-        //eq sliders
+        // EQ sliders
         var sliderWidth = floor((colWidth - spacingInner * 4) / 3);
         var sliderHeight = rowHeight - buttonHeight - spacingInner * 2;
         slider_eq0 = createSliderV("low", spacingOuter + spacingInner, spacingOuter * 3 + textBarHeight + rowHeight + spacingInner + buttonHeight, sliderWidth, sliderHeight, -20, 20);
@@ -86,55 +97,56 @@ function mainScene() {
             textSize: 15,
         });
 
-        //keyboard toggles
+        // Keyboard enable toggle - off = X-Y pad, on = keyboard
         toggle_controlType = createCheckbox("control", spacingOuter * 2 + colWidth + spacingInner, spacingOuter * 3 + rowHeight + spacingInner + textBarHeight, buttonHeight, buttonHeight);
 
-        //record UI
+        // Record UI
         toggle_record = createCheckbox("recording", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight * 3 - spacingOuter - spacingInner * 3, buttonHeight, buttonHeight);
         button_AudioPlayback = createButton("Play", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight * 2 - spacingOuter - spacingInner * 2, colWidth / 2 - spacingOuter - spacingInner, buttonHeight);
         button_AudioSave = createButton("Save", spacingOuter * 3 + colWidth * 2.5 + spacingInner * 2, height - buttonHeight - spacingOuter - spacingInner, colWidth / 2 - spacingOuter - spacingInner, buttonHeight);
 
-        //save/load UI
+        // Save/load UI
         button_SettingsSave = createButton("Save", spacingOuter + spacingInner, spacingOuter * 2 + textBarHeight + rowHeight - spacingInner - 26, 55, 26);
         button_SettingsLoad = createButton("Load", spacingOuter + spacingInner * 2 + 56, spacingOuter * 2 + textBarHeight + rowHeight - spacingInner - 26, 55, 26);
+        setUpFileReader(); //set up file selector for loading from text file
 
-        //set up file selector
-        setUpFileReader();
-
-        // scene manager switch buttons
+        // SceneManager switch buttons
         button_loudspeakerMore = createButton("More", spacingOuter * 3 + colWidth * 2.5 - spacingInner * 2 - 55, height - spacingOuter - spacingInner - 26, 55, 26);
         button_soundMore = createButton("More", spacingOuter + colWidth - spacingInner - 55, spacingOuter * 2 + textBarHeight + rowHeight - spacingInner - 26, 55, 26);
 
-        //help mode buttons
+        // Help mode buttons
         button_helpMode_sound = createButton("?", spacingOuter + colWidth - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
         button_helpMode_input = createButton("?", spacingOuter * 2 + colWidth * 2 - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
         button_helpMode_output = createButton("?", spacingOuter * 3 + colWidth * 3 - spacingInner - 25, spacingOuter + textBarHeight - spacingInner - 25, 25, 25);
 
-        //audio things
-        recorder = new p5.SoundRecorder(); //no input specified = records everything happening within the sketch
-        soundFile = new p5.SoundFile();
-        envMain = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
-
-        //master volume slider - set to currentAmpMain
+        // Master volume slider
         slider_gain = createSlider("gain", spacingOuter + spacingInner, spacingOuter + textBarHeight + spacingOuter * 3 + buttonHeight * 2, colWidth - spacingInner * 2 - 50, 30, 0, 1);
 
-        noFill();
-        stroke('white');
+        /*--- Audio things specific to this scene ---*/
+        recorder = new p5.SoundRecorder(); //no input specified = records everything happening within the sketch
+        soundFile = new p5.SoundFile(); //file to put audio recording into
+        envMain = new p5.Envelope(0.01, 1, 0.3, 0); // attack time, attack level, decay time, decay level
 
-        //set status of UI elements and oscillators
+        // Set status of UI elements and oscillators
         setOscillatorValues();
         setUIValues();
 
+        // Reset
+        noFill();
+        stroke('white');
+
     };
 
+    // Called whenever scene is switched to from another
     this.enter = function() {
         this.setup();
     };
 
     this.draw = function() {
 
-        //---- figure out whether in help mode or not, change button style ----//
-        //sound section
+        /*--- Figure out whether in help mode or not, change button style accordingly---*/
+
+        // Sound section
         if (button_helpMode_sound.isPressed && helpMode_sound == 0) { //if button pressed to turn on 
             helpMode_sound = 1;
             button_helpMode_sound.setStyle(helpButtonActiveStyle);
@@ -142,7 +154,7 @@ function mainScene() {
             helpMode_sound = 0;
             button_helpMode_sound.setStyle(helpButtonInactiveStyle);
         }
-        //input section
+        // Input section
         if (button_helpMode_input.isPressed && helpMode_input == 0) { //if button pressed to turn on 
             helpMode_input = 1;
             button_helpMode_input.setStyle(helpButtonActiveStyle);
@@ -150,7 +162,7 @@ function mainScene() {
             helpMode_input = 0;
             button_helpMode_input.setStyle(helpButtonInactiveStyle);
         }
-        //output section
+        // Output section
         if (button_helpMode_output.isPressed && helpMode_output == 0) { //if button pressed to turn on 
             helpMode_output = 1;
             button_helpMode_output.setStyle(helpButtonActiveStyle);
@@ -159,19 +171,21 @@ function mainScene() {
             button_helpMode_output.setStyle(helpButtonInactiveStyle);
         }
 
-        //----- draw stuff -----//
+        /*--- Draw GUI stuff: rectangles, UI elements, text, keyboard ---*/
+
+        drawGui(); //required by touchGUI 
+
         drawRectangles();
         drawLoudspeaker(loudspeakerX, loudspeakerY);
         drawRecordLED();
-        drawGui();
 
-        //if mouse is NOT pressed and within region where waveform is drawn, plot live version
+        // If mouse is NOT currently pressed within region where waveform is drawn, update waveform so the plot is live
         if (!(mouseIsPressed && mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > (spacingOuter * 2 + textBarHeight) && mouseY < (spacingOuter * 2 + textBarHeight + rowHeight))) {
             waveform = fftMain.waveform();
-        }
+        } // Else plot the static waveform to 'pause' the plot
         drawWaveform(waveform, colWidth * 2 + spacingOuter * 3, width - spacingOuter, rowHeight + textBarHeight + spacingOuter * 2 - 1, spacingOuter * 2 + 1 + textBarHeight);
 
-        //various text bits
+        // Draw various bits of text
         fill("white");
         textSize(25);
         textAlign(LEFT, CENTER);
@@ -189,7 +203,7 @@ function mainScene() {
         text("High", spacingOuter + spacingInner + 230, spacingOuter * 3 + spacingInner + textBarHeight + rowHeight + 65);
         textAlign(CENTER, CENTER);
         text('Amplitude', spacingOuter * 3 + spacingInner + colWidth * 1.5, spacingOuter * 2 + textBarHeight + rowHeight - spacingInner * 2)
-        push()
+        push() //so can rotate 'Frequency' label and have it in the correct place
         translate(spacingOuter * 2 + spacingInner * 2 + colWidth, spacingOuter * 2 + textBarHeight + rowHeight * 0.5)
         rotate(radians(-90))
         text('Frequency', 0, 0)
@@ -198,13 +212,13 @@ function mainScene() {
 
         textSize(25)
 
-        //explainer boxes
+        // Draw top row of text
         textAlign(CENTER, CENTER)
         text("This is where we design the sound.", spacingOuter, spacingOuter + spacingInner, colWidth, textBarHeight);
         text("This is where our inputs control the sound.", spacingOuter * 2 + colWidth, spacingOuter + spacingInner, colWidth, textBarHeight);
         text("This is where the output sound is represented.", spacingOuter * 3 + spacingInner + colWidth * 2, spacingOuter + spacingInner, colWidth - spacingInner, textBarHeight);
 
-        //frequency text label
+        // Draw frequency label on X-Y pad
         textAlign(RIGHT, CENTER);
         textSize(18)
         if (currentFreqMain > 1000) {
@@ -212,23 +226,23 @@ function mainScene() {
         } else {
             text(round(currentFreqMain) + "Hz", spacingOuter * 2 + colWidth * 2 - spacingInner, spacingOuter * 2 + textBarHeight + spacingInner * 2)
         }
-
-        textAlign(LEFT, CENTER);
+        textAlign(LEFT, CENTER); //reset
         noFill();
 
-        //display osc type label based on which toggle is active
+        // Display oscillator type label based on which toggle is active
         changeTypeLabel(toggle_Type1.val, toggle_Type2.val, toggle_Type3.val, toggle_Type4.val);
 
-        // draw active/inactive keyboard
+        // Draw active/inactive keyboard
         if (toggle_controlType.val) {
-            drawKeyboard(1); //active keyboard
+            drawKeyboard(1); // active keyboard
             drawOctaveIndicator(currentOctave);
         } else {
-            drawKeyboard(0); //inactive keyboard
+            drawKeyboard(0); // inactive keyboard
         }
 
-        //----- pop up hover over boxes if help mode on - draw on top of everything else
-        if (helpMode_sound) {
+        /*--- Draw help mode boxes if help mode has been activated - draw on top of everything else. 
+        When each UI element is hovered over, display pop-up help box ---*/
+        if (helpMode_sound) { // if left-most help button pressed
             if (toggle_OnOff._hover) {
                 fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
@@ -373,7 +387,7 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
         }
-        if (helpMode_input) {
+        if (helpMode_input) { // if central help button pressed
             if (XY_freqAmp._hover) {
                 fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
@@ -404,8 +418,9 @@ function mainScene() {
                 textAlign(LEFT, CENTER)
             }
         }
-        if (helpMode_output) {
-            if (mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > (spacingOuter * 2 + textBarHeight) && mouseY < (spacingOuter * 2 + textBarHeight + rowHeight)) { //if within area where waveform is drawn
+        if (helpMode_output) { // if right-most help button pressed
+            // If within region where waveform is plotted
+            if (mouseX > (spacingOuter * 3 + colWidth * 2) && mouseX < (width - spacingOuter) && mouseY > (spacingOuter * 2 + textBarHeight) && mouseY < (spacingOuter * 2 + textBarHeight + rowHeight)) {
                 fill(184, 216, 216);
                 textAlign(CENTER, CENTER)
                 rectMode(CENTER)
@@ -472,13 +487,15 @@ function mainScene() {
             }
         }
 
-        //----- define UI interactions -----//
-        // turn synth on/off
+        /*--- Define UI interactions.
+        Note - touchGUI differs from p5 implementation: touchGUI uses if statements rather than events (see documentation for more info) ---*/
+
+        // Turn synth on/off
         if (toggle_OnOff.val) {
             if (!oscillatorMain.started) { //to avoid repeatedly starting the oscillator
                 oscillatorMain.start();
                 oscillatorCopy.start();
-                isOn = 1; //for transferring between scenes
+                isOn = 1;
             }
         } else {
             oscillatorMain.stop();
@@ -486,7 +503,7 @@ function mainScene() {
             isOn = 0;
         }
 
-        // mute but everything continues happening
+        // Mute main output rather than oscillator. Useful for discussing waveforms without constant sound 
         if (toggle_mute.val) {
             p5.soundOut.output.gain.value = 0; //sets the output of the gain node to 0 so everything continues happening but no sound plays
             isMute = 1;
@@ -495,33 +512,33 @@ function mainScene() {
             isMute = 0;
         }
 
-        // toggle between types - mutually exclusive
-        if (toggle_Type1.isPressed) {
-            if (!toggle_Type1.val) { toggle_Type1.val = true; } //can't turn a toggle off and leave none active
+        // Toggle between oscillator types - mutually exclusive, and can't turn a toggle off and leave none active
+        if (toggle_Type1.isPressed) { // Sine
+            if (!toggle_Type1.val) { toggle_Type1.val = true; }
             toggle_Type2.val = false;
             toggle_Type3.val = false;
             toggle_Type4.val = false;
             currentType = 'sine';
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
-        } else if (toggle_Type2.isPressed) {
-            if (!toggle_Type2.val) { toggle_Type2.val = true; } //can't turn a toggle off and leave none active
+        } else if (toggle_Type2.isPressed) { // Sawtooth
+            if (!toggle_Type2.val) { toggle_Type2.val = true; }
             toggle_Type1.val = false;
             toggle_Type3.val = false;
             toggle_Type4.val = false;
             currentType = 'sawtooth';
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
-        } else if (toggle_Type3.isPressed) {
-            if (!toggle_Type3.val) { toggle_Type3.val = true; } //can't turn a toggle off and leave none active
+        } else if (toggle_Type3.isPressed) { // Triangle
+            if (!toggle_Type3.val) { toggle_Type3.val = true; }
             toggle_Type1.val = false;
             toggle_Type2.val = false;
             toggle_Type4.val = false;
             currentType = 'triangle';
             oscillatorMain.setType(currentType);
             oscillatorCopy.setType(currentType);
-        } else if (toggle_Type4.isPressed) {
-            if (!toggle_Type4.val) { toggle_Type4.val = true; } //can't turn a toggle off and leave none active
+        } else if (toggle_Type4.isPressed) { // Square
+            if (!toggle_Type4.val) { toggle_Type4.val = true; }
             toggle_Type1.val = false;
             toggle_Type2.val = false;
             toggle_Type3.val = false;
@@ -530,7 +547,7 @@ function mainScene() {
             oscillatorCopy.setType(currentType);
         }
 
-        //filtering
+        // Change EQ band gains
         if (slider_eq0.isChanged) {
             eqGains[0] = slider_eq0.val;
             eq.bands[0].gain(eqGains[0]);
@@ -544,6 +561,7 @@ function mainScene() {
             eq.bands[2].gain(eqGains[2]);
         }
 
+        // Reset EQ gains and sliders to 0
         if (button_eqReset.isPressed) {
             //reset sliders
             slider_eq0.val = 0;
@@ -555,16 +573,17 @@ function mainScene() {
             }
         }
 
-        //save synth settings to a text file
+        // Save synth settings to a text file
         if (button_SettingsSave.isPressed) {
-            //create list from variables
+            // Create list from variables
             let settingsList = [str(currentType), str(currentFreqMain), str(currentAmpMain), str(isLFOon), str(currentFreqLFO), str(currentAmpLFO), eqGains.toString()];
-            //save to text file
+            // Save to text file using default download location
             saveStrings(settingsList, 'synthSettings.txt');
         }
 
+        // Store current values and simulate clicking on a file selector to load in data from text file
         if (button_SettingsLoad.isPressed) {
-            //store current values in case load fails
+            // Store current values in case load fails
             currentType_temp = currentType;
             currentFreqMain_temp = currentFreqMain;
             currentAmpMain_temp = currentAmpMain;
@@ -573,128 +592,133 @@ function mainScene() {
             currentAmpLFO_temp = currentAmpLFO;
             eqGains_temp = eqGains;
 
-            //simulate the click to open the file selector
+            // Simulate the click to open the file selector
             fileInput.click();
         }
 
-        //X-Y frequency/amplitude control - only when keyboard isn't enabled - otherwise too many amplitude values at once
+        // X-Y frequency/amplitude control - when keyboard is disabled
         if (XY_freqAmp.isChanged && !toggle_controlType.val) {
-            //store values
-            currentAmpMain = XY_freqAmp.valX * slider_gain.val;
+            // Store values
+            currentAmpMain = XY_freqAmp.valX * slider_gain.val; // amplitude is related to both X-Y pad and main slider
             currentFreqMain = XY_freqAmp.valY;
-            //set osc variables
+            // Set oscillator variables
             oscillatorMain.amp(currentAmpMain, 0.01);
             oscillatorCopy.amp(currentAmpMain, 0.01);
             oscillatorMain.freq(currentFreqMain);
             oscillatorCopy.freq(currentFreqMain);
         }
 
-        //slider amplitude control
+        // Slider amplitude control
         if (slider_gain.isChanged) {
-            currentAmpMain = XY_freqAmp.valX * slider_gain.val;
-            if (!toggle_controlType.val) { //do not change osc amplitude if keyboard enabled
+            currentAmpMain = XY_freqAmp.valX * slider_gain.val; // amplitude is related to both X-Y pad and main slider
+            if (!toggle_controlType.val) { // only change oscillator amplitude if keyboard is not enabled as this can causes constant sound if changed when keyboard is in use
                 oscillatorMain.amp(currentAmpMain, 0.01);
                 oscillatorCopy.amp(currentAmpMain, 0.01);
             }
         }
 
-        //if in keyboard board, multiply the envelope when slider val changes
+        // If keyboard enabled, multiply the envelope by slider value
         if (toggle_controlType.val) {
             envMain.mult(slider_gain.val);
         }
 
-        //if turning keyboard mode on , set gain to 0 to avoid constant droning
+        // When turning keyboard mode on, set oscillator gain to 0 to avoid constant sound
         if (toggle_controlType.isPressed && toggle_controlType.val) {
             oscillatorMain.amp(0);
             oscillatorCopy.amp(0);
         }
 
-        //if turning keyboard mode off, set gain back to current gain value
+        // When turning keyboard mode off, set gain back to current gain value
         if (toggle_controlType.isPressed && !toggle_controlType.val) {
             oscillatorMain.amp(currentAmpMain);
             oscillatorCopy.amp(currentAmpMain);
         }
 
-        //playing via keyboard(1=keyboard on) and changing sliders with arrows
+        // Filtering key presses for playing via keyboard input and changing sliders with arrows
         if (keyIsPressed) {
-            if (toggle_controlType.val) { //only change frequency when keyboard input is enabled
-                //if one of the numbers, change octave
+            // If keyboard input is enabled - play notes with letters and numbers
+            if (toggle_controlType.val) {
+                //if one of the numbers has been pressed, change octave, play note and draw indicator
                 if (Number(key) > 0 && Number(key) < 9) {
-                    currentOctave = (Number(key) + 1) * 12;
+                    currentOctave = (Number(key) + 1) * 12; //convert 1-8 to MIDI note 
                     playNote();
                     drawOctaveIndicator(currentOctave);
-                } else { //if one of the letters, change note
+                }
+                // If another key has been pressed, change note (if correct letter), play note and draw indicator
+                else {
                     switch (key) {
-                        case "a": //C
+                        case "a": // C
                             currentNote = 0;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "w": //C#
+                        case "w": // C#
                             currentNote = 1;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "s": //D
+                        case "s": // D
                             currentNote = 2;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "e": //D#
+                        case "e": // D#
                             currentNote = 3;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "d": //E
+                        case "d": // E
                             currentNote = 4;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "f": //F
+                        case "f": // F
                             currentNote = 5;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "t": //F#
+                        case "t": // F#
                             currentNote = 6;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "g": //G
+                        case "g": // G
                             currentNote = 7;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "y": //G#
+                        case "y": // G#
                             currentNote = 8;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "h": //A
+                        case "h": // A
                             currentNote = 9;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "u": //A#
+                        case "u": // A#
                             currentNote = 10;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "j": //B
+                        case "j": // B
                             currentNote = 11;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
-                        case "k": //C
+                        case "k": // C
                             currentNote = 12;
                             playNote();
                             drawKeyboardIndicator(currentNote);
                             break;
                     }
                 }
-            } else if (XY_freqAmp._hover && frameCount % 4 == true) { //if hover over XY pad (triggers every 4 frames ie 15fps)
+            }
+            // If hover over XY pad (triggers every 4 frames ie 15fps) - nudge slider value with arrows
+            else if (XY_freqAmp._hover && frameCount % 4 == true) {
                 switch (keyCode) {
-                    case UP_ARROW: //increase freq
+                    case UP_ARROW: //increase frequency by 1
                         if (currentFreqMain <= maxFreq - 1) {
                             currentFreqMain += 1;
                             XY_freqAmp.valY = currentFreqMain;
@@ -702,7 +726,7 @@ function mainScene() {
                             oscillatorCopy.freq(currentFreqMain);
                         }
                         break;
-                    case DOWN_ARROW: //decrease freq
+                    case DOWN_ARROW: //decrease frequency by 1
                         if (currentFreqMain >= minFreq + 1) {
                             currentFreqMain -= 1;
                             XY_freqAmp.valY = currentFreqMain;
@@ -710,7 +734,7 @@ function mainScene() {
                             oscillatorCopy.freq(currentFreqMain);
                         }
                         break;
-                    case LEFT_ARROW: //decrease amp within XY pad
+                    case LEFT_ARROW: //decrease amplitude by 0.01 within XY pad
                         if (XY_freqAmp.valX >= 0.01) {
                             XY_freqAmp.valX -= 0.01;
                             currentAmpMain = XY_freqAmp.valX * slider_gain.val;
@@ -718,7 +742,7 @@ function mainScene() {
                             oscillatorCopy.amp(currentAmpMain, 0.01);
                         }
                         break;
-                    case RIGHT_ARROW: //increase amp within XY pad
+                    case RIGHT_ARROW: //increase amplitude by 0.01 within XY pad
                         if (XY_freqAmp.valX <= 0.99) {
                             XY_freqAmp.valX += 0.01;
                             currentAmpMain = XY_freqAmp.valX * slider_gain.val;
@@ -727,9 +751,11 @@ function mainScene() {
                         }
                         break;
                 }
-            } else if (slider_gain._hover && frameCount % 4 == true) { //if hover over vol slider (triggers every 4 frames ie 15fps)
+            }
+            // If hover over volume slider (triggers every 4 frames ie 15fps) - nudge slider value with arrows
+            else if (slider_gain._hover && frameCount % 4 == true) {
                 switch (keyCode) {
-                    case LEFT_ARROW: //decrease amp within XY pad
+                    case LEFT_ARROW: //decrease amplitude by 0.01
                         if (slider_gain.val >= 0.01) {
                             slider_gain.val -= 0.01;
                             currentAmpMain = XY_freqAmp.valX * slider_gain.val;
@@ -737,7 +763,7 @@ function mainScene() {
                             oscillatorCopy.amp(currentAmpMain, 0.01);
                         }
                         break;
-                    case RIGHT_ARROW: //increase amp within XY pad
+                    case RIGHT_ARROW: //increase amplitude by 0.01
                         if (slider_gain.val <= 0.99) {
                             slider_gain.val += 0.01;
                             currentAmpMain = XY_freqAmp.valX * slider_gain.val;
@@ -749,7 +775,7 @@ function mainScene() {
             }
         }
 
-        //turn recording on/off
+        // Turn recording on/off
         if (toggle_record.isPressed) {
             if (toggle_record.val) { // turned on
                 recorder.record(soundFile);
@@ -758,12 +784,12 @@ function mainScene() {
             }
         }
 
-        // play recorded file, if exists
-        if (button_AudioPlayback.isPressed && soundFile.duration() > 0) { //make sure sound file exists...
+        // Play recorded file, if exists
+        if (button_AudioPlayback.isPressed && soundFile.duration() > 0) { // make sure sound file exists...
             soundFile.play();
         }
 
-        //turn play button green when sound file is playing
+        // Turn play button green when sound file is playing
         if (soundFile.isPlaying()) {
             button_AudioPlayback.setStyle({
                 fillBg: color("green"),
@@ -774,20 +800,21 @@ function mainScene() {
             });
         }
 
-        // save recorded file, if exists
-        if (button_AudioSave.isPressed && soundFile.duration() > 0) { //make sure sound file exists...
+        // Save recorded file to default location, if exists
+        if (button_AudioSave.isPressed && soundFile.duration() > 0) { // make sure sound file exists...
             save(soundFile, 'MySoundFile.wav');
         }
 
-        //----- scene switch buttons ----//
+        // Switch to soundScene
         if (button_soundMore.isPressed) {
             mgr.showScene(soundScene);
         }
 
+        // Switch to loudspeakerScene
         if (button_loudspeakerMore.isPressed) {
             mgr.showScene(loudspeakerScene);
         }
-    };
+    }
 
     function setUpFileReader() {
 
@@ -915,78 +942,80 @@ function mainScene() {
         };
     }
 
-    //----- musical functions -----//
+    /*--- Other functions ---*/
+
+    // Play oscillator using envelope at MIDI note
     function playNote() {
-        currentFreqMain = midiToFreq(currentNote + currentOctave); //left as midi as using keyboard here
+        currentFreqMain = midiToFreq(currentNote + currentOctave);
         oscillatorMain.freq(currentFreqMain);
         oscillatorCopy.freq(currentFreqMain);
         envMain.play(oscillatorMain); //play with envelope
         //NB - all other osc are disconnected, and putting through env sets amp to 0 on them, so are not touched here
     }
 
-    //----- drawing things ----//
+    // Draw fake LED recording indicator
     function drawRecordLED() {
-        if (frameCount % 60 > 29 && toggle_record.val) { //flash on/off once a second
+        if (frameCount % 60 > 29 && toggle_record.val) { // if recording enabled, flash on/off once a second
             fill("red");
             circle(spacingOuter * 3 + spacingInner * 2 + colWidth * 2 + 250, height - buttonHeight * 3 - spacingOuter - spacingInner * 3 + 15, 20);
             noFill();
-        } else {
+        } else { //draw as 'unlit'
             fill("darkred");
             circle(spacingOuter * 3 + spacingInner * 2 + colWidth * 2 + 250, height - buttonHeight * 3 - spacingOuter - spacingInner * 3 + 15, 20);
             noFill();
         }
     }
 
+    // Draw coloured boxes
     function drawRectangles() {
-        let rounding = 10;
+        let rounding = 10; // corner rounding
         strokeWeight(4);
-        //sound
+        // Sound - left column in yellow
         stroke(255, 193, 84);
-        rect(spacingOuter, spacingOuter, colWidth, textBarHeight, rounding, rounding)
-        rect(spacingOuter, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding); //sound top
-        rect(spacingOuter, rowHeight + spacingOuter * 3 + textBarHeight, colWidth, rowHeight, rounding, rounding); //sound bottom
+        rect(spacingOuter, spacingOuter, colWidth, textBarHeight, rounding, rounding);
+        rect(spacingOuter, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding);
+        rect(spacingOuter, rowHeight + spacingOuter * 3 + textBarHeight, colWidth, rowHeight, rounding, rounding);
 
-        //inputs
+        // Inputs - central column in turquoise
         stroke(0, 196, 154)
         rect(spacingOuter * 2 + colWidth, spacingOuter, colWidth, textBarHeight, rounding, rounding)
-        rect(spacingOuter * 2 + colWidth, spacingOuter * 3 + rowHeight + textBarHeight, colWidth, rowHeight, rounding, rounding); //keyboard
+        rect(spacingOuter * 2 + colWidth, spacingOuter * 3 + rowHeight + textBarHeight, colWidth, rowHeight, rounding, rounding);
 
-        //outputs
+        // Outputs - right column in purple
         stroke(88, 44, 77)
         rect(spacingOuter * 3 + colWidth * 2, spacingOuter, colWidth, textBarHeight, rounding, rounding)
-
-        rect(colWidth * 2 + spacingOuter * 3, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding); //waveform
-
-        rect(colWidth * 2 + spacingOuter * 3, rowHeight + spacingOuter * 3 + textBarHeight, colWidth / 2 - spacingInner, rowHeight, rounding, rounding); //bottom right
-        rect(colWidth * 2.5 + spacingOuter * 3 + spacingInner, rowHeight + spacingOuter * 3 + textBarHeight, colWidth / 2 - spacingInner, rowHeight, rounding, rounding); //bottom right
+        rect(colWidth * 2 + spacingOuter * 3, spacingOuter * 2 + textBarHeight, colWidth, rowHeight, rounding, rounding);
+        rect(colWidth * 2 + spacingOuter * 3, rowHeight + spacingOuter * 3 + textBarHeight, colWidth / 2 - spacingInner, rowHeight, rounding, rounding);
+        rect(colWidth * 2.5 + spacingOuter * 3 + spacingInner, rowHeight + spacingOuter * 3 + textBarHeight, colWidth / 2 - spacingInner, rowHeight, rounding, rounding);
 
     }
 
+    // Draw and animate loudspeaker graphic, centered at (x, y)
     function drawLoudspeaker(x, y) {
         strokeWeight(1);
         stroke(0);
-        //centre of loudspeaker = x, y
-        var ampLevel = ampAnalyser.getLevel(); //amplitude of output - not value on a UI element
+        // Get output amplitude - not a value from a UI element
+        var ampLevel = ampAnalyser.getLevel();
 
-        //change the value based on the master output level every 3 frames, if the synth is turned on
-        // if amplitude is 0 on either control, currentWidth = 100
+        // Change the size based on the output level every 3 frames, if the synth is turned on
         if (frameCount % 3 == true && toggle_OnOff.val) {
-            loudspeakerWidth = 100 + random(0, 10) * ampLevel * 4; //*4 to give more visual change
+            loudspeakerSize = 100 + random(0, 10) * ampLevel * 4; //*4 to give more visual change
         }
 
-        //draw 
+        // Draw at that size every frame
         fill("grey");
-        circle(x, y, loudspeakerWidth);
+        circle(x, y, loudspeakerSize);
         fill("black");
-        circle(x, y, loudspeakerWidth * 0.9);
+        circle(x, y, loudspeakerSize * 0.9);
         fill("grey");
-        circle(x, y, loudspeakerWidth * 0.8);
+        circle(x, y, loudspeakerSize * 0.8);
         fill("black");
-        circle(x, y, loudspeakerWidth * 0.4);
+        circle(x, y, loudspeakerSize * 0.4);
         noFill();
 
     }
 
+    // Draw keyboard - active or inactive (different transparency)
     function drawKeyboard(activeFlag) {
         let keyWidth = 36;
         let keyHeight = 50;
@@ -994,17 +1023,19 @@ function mainScene() {
 
         stroke("grey");
 
+        // Change transparency based on active/inactive
         if (activeFlag) {
             transparencyValue = 255;
         } else {
             transparencyValue = 0.5 * 255;
         }
-        // white keys
+
+        // Draw white keys
         fill(255, 255, 255, transparencyValue);
         for (let i = 0; i < 8; i++) {
             rect(spacingOuter * 2 + colWidth + spacingInner + (i * keyWidth), height - spacingOuter - keyHeight * 2, keyWidth, keyHeight * 1.75);
         }
-        //black keys - slightly thinner for visual clarity
+        // Draw black keys 
         fill(0, 0, 0, transparencyValue);
         for (let i = 0; i < 2; i++) {
             rect(spacingOuter * 2 + colWidth + spacingInner + keyWidth / 2 + (i * keyWidth) + 4, height - spacingOuter - keyHeight * 2, keyWidth - 8, keyHeight);
@@ -1012,7 +1043,8 @@ function mainScene() {
         for (let i = 3; i < 6; i++) {
             rect(spacingOuter * 2 + colWidth + spacingInner + keyWidth / 2 + (i * keyWidth) + 4, height - spacingOuter - keyHeight * 2, keyWidth - 8, keyHeight);
         }
-        //octave boxes and numbers
+
+        // Draw octave boxes and numbers
         for (let i = 0; i < 8; i++) {
             fill(150, 150, 150, transparencyValue);
             rect(spacingOuter * 2 + colWidth + spacingInner + (i * keyWidth), height - spacingOuter - keyHeight * 2 - 30, keyWidth, 24);
@@ -1028,12 +1060,13 @@ function mainScene() {
         noFill();
     }
 
+    // Draw indicator at current note on keyboard
     function drawKeyboardIndicator(currentNote) {
         let whiteNoteOffsetVertical = 30;
         let blackNoteOffsetVertical = 70;
         let horizIncrement, verticalOffset;
 
-        //calculate multiple of horiz increment for each note
+        // Calculate multiple of horizontal increment - accounting for non-uniform spacing
         if (currentNote < 5) {
             horizIncrement = 1;
         } else if (currentNote > 4 && currentNote < 12) {
@@ -1042,30 +1075,33 @@ function mainScene() {
             horizIncrement = 3;
         }
 
-        //calculate y offset for each note
+        // Change y offset - different for white/black notes
         if (currentNote == 1 || currentNote == 3 || currentNote == 6 || currentNote == 8 || currentNote == 10) {
             verticalOffset = blackNoteOffsetVertical;
         } else {
             verticalOffset = whiteNoteOffsetVertical;
         }
 
+        // Calculate location to draw
         x = spacingOuter * 2 + colWidth + spacingInner + 18 * (currentNote + horizIncrement); //18 = width of key/2
         y = height - spacingOuter - verticalOffset;
 
+        // Draw indicator
         fill("red");
         circle(x, y, 10);
         noFill();
     }
 
+    // Draw letters on keyboard
     function drawKeyboardHelp() {
         let whiteNoteOffsetVertical = 30;
         let blackNoteOffsetVertical = 70;
         let horizIncrement, verticalOffset;
         letters = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j", "k"];
 
-        for (let j = 0; j < 13; j++) {
+        for (let j = 0; j < 13; j++) { // for each of the 13 keys
 
-            //calculate multiple of horiz increment for each note
+            // Calculate multiple of horizontal increment - accounting for non-uniform spacing
             if (j < 5) {
                 horizIncrement = 1;
             } else if (j > 4 && j < 12) {
@@ -1074,34 +1110,40 @@ function mainScene() {
                 horizIncrement = 3;
             }
 
-            //calculate y offset for each note
+            // Change y offset - different for white/black notes
             if (j == 1 || j == 3 || j == 6 || j == 8 || j == 10) {
                 verticalOffset = blackNoteOffsetVertical;
             } else {
                 verticalOffset = whiteNoteOffsetVertical;
             }
 
-            x = spacingOuter * 2 + colWidth + spacingInner + 18 * (j + horizIncrement); //18 = width of key/2
+            // Calculate location to draw
+            x = spacingOuter * 2 + colWidth + spacingInner + 18 * (j + horizIncrement);
             y = height - spacingOuter - verticalOffset;
 
+            // Draw letters
             fill("red")
             text(letters[j], x, y, 10);
             noFill();
         }
     }
 
+    // Draw indicator at current octave on keyboard
     function drawOctaveIndicator(currentOctave) {
+
+        // Calculate increment from current octave MIDI value
         let activeOctave = currentOctave / 12 - 1;
+
+        // Draw circle
         stroke("red");
         noFill();
-
         circle(spacingOuter * 2 + colWidth + spacingInner + ((activeOctave * 2) - 1) * 18, height - spacingOuter - 50 * 2 - 18, 15);
 
     }
 
-    //update All UI elements based on current values
+    // Update All UI elements based on current values
     function setUIValues() {
-        //UI toggle values
+        // UI toggle values
         if (isOn) {
             toggle_OnOff.val = 1;
         }
@@ -1137,12 +1179,12 @@ function mainScene() {
                 break;
         }
 
-        //starting parameters
+        // Frequency and amplitude
         XY_freqAmp.valX = 1; //amplitude at 1
         XY_freqAmp.valY = currentFreqMain;
         slider_gain.val = currentAmpMain;
 
-        //set EQ gains & slider gains
+        // EQ gains & slider gains
         for (let i = 0; i < 3; i++) {
             eq.bands[i].gain(eqGains[i]);
         }
@@ -1151,6 +1193,4 @@ function mainScene() {
         slider_eq2.val = eqGains[2];
 
     }
-
-
 }
