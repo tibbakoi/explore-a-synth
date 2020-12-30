@@ -1,3 +1,17 @@
+<!-- 
+HTML container for Explore-a-Synth JS files and required libraries.
+
+Must contain a div with `id=instrument` to match `canvas.parent('instrument')` used in `instrumentv3.js`, for example:
+
+    <div class="content">
+        <div class="instrumentHolder" id="instrument"></div>
+    </div>
+
+Author: Kat Young
+https://github.com/tibbakoi
+2020
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,16 +21,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- p5 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.js"></script>
-    <!-- p5 sound v0.3.11 required, p5 0.10.2 is last version -->
+    <!-- p5 sound: v0.3.11 required, p5 0.10.2 is last version -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.10.2/addons/p5.sound.min.js"></script>
-
-    <!--- external things -->
-    <!--- NB - all UI elements are not DOM, drawn using touchGUI -->
+    <!-- touchGUI -->
     <script src="https://unpkg.com/p5.touchgui@0.5.2/lib/p5.touchgui.js"></script>
+    <!-- SceneManager -->
     <script src="libraries/scenemanager.js"></script>
 
-    <!--- required JS files -->
+    <!--- Required Explore-a-Synth JS files -->
     <script src="instrumentv3.js"></script>
     <script src="mainScene.js"></script>
     <script src="soundScene.js"></script>
@@ -25,11 +39,10 @@
 </head>
 
 <body>
-
     <div class="content">
+        <!-- Contain the Explore-a-Synth in this div -->
         <div class="instrumentHolder" id="instrument"></div>
     </div>
-
 </body>
 
 </html>
