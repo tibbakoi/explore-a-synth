@@ -5,6 +5,8 @@ Developed as a collaboration between UKESF and the AudioLab (University of York)
 
 *Note: This is a work in progress that is in early stages of development.*
 
+![The first scene of the Explore-a-Synth, showing the synthesiser controls, user pitch controls and plotted waveform.](img/mainScene.png)
+
 ## Dependencies
 * p5 v1.1.9 (CDN URL)
 * p5.sound v0.3.11 (CDN URL, via p5 v0.10.2 as not compatable with p5 v1.0.0)
@@ -45,11 +47,15 @@ Scene loaded when 'More' button pressed in sound section of mainScene:
 - UI elements created using touchGUI
 - Location of UI elements based on values set in instrumentv3 (colWidth, rowHeight, spacingOuter etc)
 
+![The second scene of the Explore-a-Synth, showing the synthesiser controls for the two oscillators used in frequency modulation synthesis.](img/soundScene.png)
+
 ### loudspeakerScene
 Scene loaded when 'More' button pressed in loudspeaker section of mainScene:
 - Displays oscillator controls and an animation of a sliced loudspeaker which reacts to controls
 - UI elements created using touchGUI
 - Location of UI elements based on values set in instrumentv3 (colWidth, rowHeight, spacingOuter etc)
+
+![The third scene of the Explore-a-Synth, showing the synthesiser controls and responsive animated loudspeaker graphic.](img/loudspeakerScene.png)
 
 ## Contact
 Any questions may be communicated via [Issues](https://github.com/tibbakoi/explore-a-synth/issues).
