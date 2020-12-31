@@ -13,6 +13,9 @@ Developed as a collaboration between UKESF and the AudioLab (University of York)
 * p5.touchgui v0.5.2 (CDN URL)
 * p5.SceneManager (file in /libraries/)
 
+## Getting started
+To run the Explore-a-Synth, open **index.html** in a browser (note - full functionality can only be guaranteed using Google Chrome).
+
 ## Structure
 ### index.html
 Contains the links to required libraries and Explore-a-Synth files.
