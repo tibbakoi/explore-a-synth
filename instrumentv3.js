@@ -195,3 +195,10 @@ function setOscillatorValues() {
         oscillatorMain.freq(oscillatorLFO); //modulate the frequency
     }
 }
+
+/// Prevent scrolling while using UI object on mobile
+// Therefore can't do anything if is too wide - need to zoom to fit
+function touchMoved() {
+    // do some stuff
+    return false;
+}
